@@ -1,8 +1,6 @@
 /*
  * loopback.hpp
  *
- *  Created on: Nov 6, 2012
- *      Author: 1001884
  */
 
 #ifndef LOOPBACK_HPP_
