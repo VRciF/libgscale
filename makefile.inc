@@ -1,2 +1,2 @@
 CC=g++
-CC_FLAGS=-Wall -ggdb3
+CC_FLAGS=-Wall -ggdb3 -DNDEBUG

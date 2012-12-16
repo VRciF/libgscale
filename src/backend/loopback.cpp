@@ -48,7 +48,7 @@ unsigned int Loopback::OnLocalNodeWritesToGroup(const GScale::Packet &packet,
 	return packet.size();
 }
 
-void Worker(struct timeval *){}
+void Loopback::Worker(struct timeval *){}
 
 }
 

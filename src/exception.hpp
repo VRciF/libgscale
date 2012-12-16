@@ -16,6 +16,10 @@ class Exception : public std::exception{
     public:
 	    Exception(const char *file, const int line);
 	    Exception(const std::string file, const int line);
+	    /*
+	    interprocess_exception(const char *);
+	      interprocess_exception(const error_info &, const char * = 0);
+	      */
 	    virtual ~Exception() throw();
 
 	    Exception& setLine(const int line);
@@ -26,6 +30,11 @@ class Exception : public std::exception{
 	    std::stringstream& getMessage();
 
         virtual const char* what() const throw();
+        /*
+        const char * what() const;
+        native_error_t get_native_error() const;
+        error_code_t get_error_code() const;
+        */
 
     protected:
         int line;

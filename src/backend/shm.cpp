@@ -9,6 +9,7 @@
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 
+#include <iostream>
 
 #include "shm.hpp"
 
@@ -20,6 +21,7 @@ SharedMemory::SharedMemory(GScale::Group *group){
 	this->shm = NULL;
 	this->group = group;
 	//bool created = false;
+	std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 
 	this->ipckey = this->group->getName();
 
@@ -41,6 +43,7 @@ SharedMemory::SharedMemory(GScale::Group *group){
 
 			//created = true;
 		}catch(boost::interprocess::interprocess_exception &ex){
+		    std::cout << __FILE__ << ":" << __LINE__ << ex.what() << std::endl;
 			this->shm = new boost::interprocess::managed_shared_memory
 			   (boost::interprocess::open_or_create_t()               //open or create
 			   ,this->ipckey.c_str()              //name
@@ -64,8 +67,10 @@ SharedMemory::SharedMemory(GScale::Group *group){
 		    */
 		}catch(boost::interprocess::interprocess_exception &ex){
 			// MISSING: throw GScale::Exception
+		    std::cout << __FILE__ << ":" << __LINE__ << ex.what() << std::endl;
 		}
 	}
+	std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 }
 SharedMemory::~SharedMemory(){
 	try{
@@ -73,7 +78,27 @@ SharedMemory::~SharedMemory(){
 	}catch(...){}
 }
 
-void SharedMemory::Worker(struct timeval *timeout){}
+void SharedMemory::OnLocalNodeAvailable(const GScale::INode *node,
+                          const GScale::LocalNodes &localnodes){
+
+}
+/* called when a local node becomes unavailable */
+void SharedMemory::OnLocalNodeUnavailable(const GScale::INode *node,
+                            const GScale::LocalNodes &localnodes){
+
+}
+
+/* called when a local node writes data to the group */
+unsigned int SharedMemory::OnLocalNodeWritesToGroup(const GScale::Packet &packet,
+                                      const GScale::LocalNodes &localnodes){
+    return 0;
+}
+
+
+void SharedMemory::Worker(struct timeval *timeout){
+    /* testing shared memory */
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
+}
 
 }
 

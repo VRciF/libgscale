@@ -41,10 +41,11 @@ class SharedMemory : public GScale::Backend::IBackend{
 		typedef boost::interprocess::allocator<int, boost::interprocess::managed_shared_memory::segment_manager>  ShmemAllocator;
 		typedef boost::circular_buffer<char, ShmemAllocator> ShmCircBuff;
 
+        boost::interprocess::managed_shared_memory *shm;
+        ShmCircBuff *shm_circular_buffer;
+
 		GScale::Group *group;
 		std::string ipckey;
-		boost::interprocess::managed_shared_memory *shm;
-		ShmCircBuff *shm_circular_buffer;
 };
 
 }
