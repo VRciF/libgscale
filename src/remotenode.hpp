@@ -12,6 +12,8 @@ namespace GScale{
 
 class RemoteNode : public GScale::INode{
 	public:
+        RemoteNode(std::string nodeuuid);
+        RemoteNode(std::string nodeuuid, std::string alias);
 		virtual ~RemoteNode();
 		bool isLocal();
 };
