@@ -10,13 +10,44 @@
 
 namespace GScale{
 
-INode::INode(){
-	this->nodeuuid = boost::uuids::random_generator()();
+INode::INode(std::string hostuuid){
+    this->hostuuid = hostuuid;
+    this->nodeuuid = boost::uuids::random_generator()();
 }
+INode::INode(std::string hostuuid, std::string uuid){
+    this->hostuuid = hostuuid;
+    this->nodeuuid = boost::uuids::string_generator(uuid);
+}
+INode::INode(std::string hostuuid, std::string uuid, std::string alias){
+    this->hostuuid = hostuuid;
+    this->nodeuuid = boost::uuids::string_generator(uuid);
+    this->alias    = alias;
+}
+
+INode::INode(){
+    this->nodeuuid = boost::uuids::random_generator()();
+}
+INode::INode(std::string uuid){
+    this->hostuuid = Core::getInstance()->getHostUUID();
+    this->nodeuuid = boost::uuids::string_generator(uuid);
+}
+INode::INode(std::string uuid, std::string alias){
+    this->hostuuid = Core::getInstance()->getHostUUID();
+    this->nodeuuid = boost::uuids::string_generator(uuid);
+    this->alias    = alias;
+}
+
 INode::~INode(){}
+
+bool INode::isLocal() const{
+    return this->hostuuid == Core::getInstance()->getHostUUID();
+}
 
 const boost::uuids::uuid INode::getNodeUUID() const{
 	return this->nodeuuid;
+}
+const boost::uuids::uuid INode::getHostUUID() const{
+    return this->hostuuid;
 }
 
 std::string INode::getAlias() const{
