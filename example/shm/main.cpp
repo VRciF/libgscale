@@ -39,6 +39,9 @@ int main(int argc, char** argv){
     GScale::Group *g = new GScale::Group("chat-example");
     g->attachBackend<GScale::Backend::SharedMemory>();
 
+    sleep(5000);
+    exit(0);
+
     ShmCallbacks cbs;
     /* add nodes to group */
     /* since connect triggers the available callback via the localloopback
