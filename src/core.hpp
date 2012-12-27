@@ -6,6 +6,7 @@
 #ifndef CORE_HPP_
 #define CORE_HPP_
 
+#include <boost/uuid/uuid_serialize.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
@@ -23,7 +24,7 @@ class Core{
 		void onNodeUnavailable(const GScale::NodeFQIdentifier &fqid);
 		int32_t sendLocalMessage(const GScale::Packet *packet);
 
-		boost::uuids::uuid getHostUUID();
+		const boost::uuids::uuid& getHostUUID() const;
 	private:
 		Core();
 

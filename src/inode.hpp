@@ -12,20 +12,28 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
+#include <boost/serialization/access.hpp>
 
 namespace GScale{
 
 class INode{
 	public:
 	    INode();
-	    INode(std::string uuid);
-	    INode(std::string uuid, std::string alias);
+	    INode(std::string alias);
+	    INode(boost::uuids::uuid uuid);
+	    INode(boost::uuids::uuid uuid, std::string alias);
+
+        INode(boost::uuids::uuid hostuuid, boost::uuids::uuid uuid);
+
         virtual ~INode();
+
+        static const INode& getNilNode();
+
+        const boost::uuids::uuid getHostUUID() const;
 	    const boost::uuids::uuid getNodeUUID() const;
-	    const boost::uuids::uuid getHostUUID() const;
 
 	    std::string getAlias() const;
-	    bool isLocal();
+	    bool isLocal() const;
 
 	    inline bool operator== (const INode &b) const;
 

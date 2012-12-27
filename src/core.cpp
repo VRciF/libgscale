@@ -19,7 +19,7 @@ Core* Core::getInstance(){
 Core::Core() : hostuuid(boost::uuids::uuid()){}
 Core::~Core(){}
 
-boost::uuids::uuid Core::getHostUUID(){
+const boost::uuids::uuid& Core::getHostUUID() const{
 	return this->hostuuid;
 }
 
