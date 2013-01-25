@@ -7,22 +7,17 @@
 
 namespace GScale{
 
-LocalNode::LocalNode(GScale::INodeCallback &cbs) : INode(), cbs(cbs){
-	this->created = boost::posix_time::microsec_clock::local_time();
+LocalNode::LocalNode(GScale::INodeCallback &cbs, boost::posix_time::ptime ctime) : INode(), cbs(cbs){
+    this->ctime = ctime;
 }
-LocalNode::LocalNode(std::string alias, GScale::INodeCallback &cbs) : INode(), cbs(cbs){
+LocalNode::LocalNode(std::string alias, GScale::INodeCallback &cbs, boost::posix_time::ptime ctime) : INode(), cbs(cbs){
 	this->alias = alias;
-	this->created = boost::posix_time::microsec_clock::local_time();
+	this->ctime = ctime;
 }
 LocalNode::~LocalNode(){}
 
-
 GScale::INodeCallback& LocalNode::getCallback() const{
 	return this->cbs;
-}
-
-bool LocalNode::isLocal(){
-	return true;
 }
 
 }

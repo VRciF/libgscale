@@ -3,6 +3,9 @@
  *
  */
 
+#include "shm.hpp"
+
+#include <iostream>
 
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include <boost/interprocess/sync/named_mutex.hpp>
@@ -21,19 +24,22 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 
-#include <iostream>
-
-#include "shm.hpp"
+#include "group.hpp"
 
 namespace GScale{
 
 namespace Backend{
 
-SharedMemory::SharedMemory(GScale::Group *group){
+SharedMemory::SharedMemory(){
+    this->shm = NULL;
+    this->group = NULL;
+}
+void SharedMemory::initialize(GScale::Group *group, GScale::GroupNodesDAO *gdao){
+    this->group = group;
+    this->gdao = gdao;
+
     //unsigned int memsize = 3 * 1024 * 1024;
     unsigned int memsize = 5;
-    this->shm = NULL;
-    this->group = group;
     //bool created = false;
     std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 
@@ -159,8 +165,8 @@ SharedMemory::~SharedMemory(){
     }
 }
 
-void SharedMemory::OnLocalNodeAvailable(const GScale::INode *node,
-                          const GScale::LocalNodes &localnodes){
+void SharedMemory::OnLocalNodeAvailable(const GScale::INode *node){
+    /*
     SharedMemory_EventHeader evavail;
 
     evavail.type = SharedMemory_EventHeader::NODEAVAIL;
@@ -185,10 +191,11 @@ void SharedMemory::OnLocalNodeAvailable(const GScale::INode *node,
     }
 
     //GScale_Backend_LocalSharedMemory_Util_NotifyMulticastEvent(storage);
+     */
 }
 /* called when a local node becomes unavailable */
-void SharedMemory::OnLocalNodeUnavailable(const GScale::INode *node,
-                            const GScale::LocalNodes &localnodes){
+void SharedMemory::OnLocalNodeUnavailable(const GScale::INode *node){
+    /*
     SharedMemory_EventHeader evavail;
 
     evavail.type = SharedMemory_EventHeader::NODEUNAVAIL;
@@ -213,11 +220,13 @@ void SharedMemory::OnLocalNodeUnavailable(const GScale::INode *node,
     }
 
     //GScale_Backend_LocalSharedMemory_Util_NotifyMulticastEvent(storage);
+     */
 }
 
 /* called when a local node writes data to the group */
-unsigned int SharedMemory::OnLocalNodeWritesToGroup(const GScale::Packet &packet,
-                                      const GScale::LocalNodes &localnodes){
+unsigned int SharedMemory::OnLocalNodeWritesToGroup(const GScale::Packet &packet){
+    return 0;
+    /*
     SharedMemory_EventHeader evavail;
     unsigned int writelength = 0;
 
@@ -264,10 +273,11 @@ unsigned int SharedMemory::OnLocalNodeWritesToGroup(const GScale::Packet &packet
     //GScale_Backend_LocalSharedMemory_Util_NotifyMulticastEvent(storage);
 
     return writelength;
+    */
 }
 
 
-void SharedMemory::Worker(struct timeval *timeout){
+void SharedMemory::Worker(){
     /* testing shared memory */
     std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 }

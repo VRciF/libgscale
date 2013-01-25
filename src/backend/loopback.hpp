@@ -7,32 +7,33 @@
 #define LOOPBACK_HPP_
 
 #include "ibackend.hpp"
-#include "group.hpp"
-#include "inode.hpp"
-#include "packet.hpp"
 
 namespace GScale{
+
+class Group;
+class INode;
+class Packet;
 
 namespace Backend{
 
 class Loopback : public GScale::Backend::IBackend{
 	public:
-		Loopback(GScale::Group *group);
+		Loopback();
 		~Loopback();
 
+		void initialize(GScale::Group *group, GScale::GroupNodesDAO *gdao);
+
 		/* called when a node becomes available */
-		void OnLocalNodeAvailable(const GScale::INode *node,
-				                  const GScale::LocalNodes &localnodes);
+		void OnLocalNodeAvailable(const GScale::INode *node);
 		/* called when a local node becomes unavailable */
-		void OnLocalNodeUnavailable(const GScale::INode *node,
-				                    const GScale::LocalNodes &localnodes);
+		void OnLocalNodeUnavailable(const GScale::INode *node);
 
 		/* called when a local node writes data to the group */
-		unsigned int OnLocalNodeWritesToGroup(const GScale::Packet &packet,
-				                              const GScale::LocalNodes &localnodes);
-	    void Worker(struct timeval *);
+		unsigned int OnLocalNodeWritesToGroup(const GScale::Packet &packet);
+	    void Worker();
 	private:
 		GScale::Group *group;
+		GScale::GroupNodesDAO *gdao;
 };
 
 }

@@ -8,6 +8,8 @@
 
 #include <string>
 
+#include <boost/uuid/uuid.hpp>
+
 namespace GScale{
 
 class NodeFQIdentifier{

@@ -49,15 +49,13 @@ class LoopbackCallbacks : public GScale::INodeCallback{
 	        this->handleCommunication(g, packet.getSender(), packet.getReceiver());
 	    }
 
-	    void OnNodeAvailable(GScale::Group *g, const GScale::INode *src,
-				             const GScale::LocalNode *dst) {
+	    void OnNodeAvailable(GScale::Group *g, const GScale::INode *src, const GScale::INode *dst) {
 	    	std::cout << "node '" << (dst->getAlias()) << "' has been notified that ";
 	    	std::cout << "'" << (src->getAlias()) << "' has become available" << std::endl;
 
 	        this->handleCommunication(g, src, dst);
 	    }
-	    void OnNodeUnavailable(GScale::Group *g, const GScale::INode *src,
-				               const GScale::LocalNode *dst) {
+	    void OnNodeUnavailable(GScale::Group *g, const GScale::INode *src, const GScale::INode *dst) {
 	    	std::cout << "node '" << (dst->getAlias()) << "' has been notified that ";
 	    	std::cout << "'" << (src->getAlias()) << "' has become unavailable" << std::endl;
 
@@ -109,9 +107,9 @@ int main(int argc, char** argv){
      * but this example shows that the local loopback backend doesnt need a GScale_work(); call
      * to do its magic
      */
-	const GScale::LocalNode *carol = g->connect("Carol", cbs);
-	const GScale::LocalNode *carlos = g->connect("Carlos", cbs);
-	const GScale::LocalNode *nameless = g->connect(cbs);
+	const GScale::LocalNodePtr carol = g->connect("Carol", cbs);
+	const GScale::LocalNodePtr carlos = g->connect("Carlos", cbs);
+	const GScale::LocalNodePtr nameless = g->connect(cbs);
 	g-> runWorker(NULL);
 
 	g->disconnect(carlos);

@@ -10,10 +10,10 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
-#include "types.hpp"
-#include "packet.hpp"
-
 namespace GScale{
+
+class NodeFQIdentifier;
+class Packet;
 
 class Core{
 	public:

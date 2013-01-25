@@ -17,31 +17,30 @@
 #include <boost/serialization/split_member.hpp>
 
 #include "ibackend.hpp"
-#include "group.hpp"
-#include "inode.hpp"
-#include "packet.hpp"
 
 namespace GScale{
+
+class Group;
+class INode;
+class Packet;
 
 namespace Backend{
 
 class SharedMemory : public GScale::Backend::IBackend{
     public:
-    SharedMemory(GScale::Group *group);
+        SharedMemory();
         ~SharedMemory();
 
+        void initialize(GScale::Group *group, GScale::GroupNodesDAO *gdao);
+
         /* called when a node becomes available */
-        void OnLocalNodeAvailable(const GScale::INode *node,
-                                  const GScale::LocalNodes &localnodes);
+        void OnLocalNodeAvailable(const GScale::INode *node);
         /* called when a local node becomes unavailable */
-        void OnLocalNodeUnavailable(const GScale::INode *node,
-                                    const GScale::LocalNodes &localnodes);
+        void OnLocalNodeUnavailable(const GScale::INode *node);
 
         /* called when a local node writes data to the group */
-        unsigned int OnLocalNodeWritesToGroup(const GScale::Packet &packet,
-                                              const GScale::LocalNodes &localnodes);
-
-        void Worker(struct timeval *timeout);
+        unsigned int OnLocalNodeWritesToGroup(const GScale::Packet &packet);
+        void Worker();
     protected:
 
     private:
@@ -52,9 +51,10 @@ class SharedMemory : public GScale::Backend::IBackend{
         ShmCircBuff *shm_circular_buffer;
 
         GScale::Group *group;
+        GScale::GroupNodesDAO *gdao;
         std::string ipckey;
 };
-
+/*
 class SharedMemory_EventHeader{
     public:
         enum ev_types {
@@ -111,8 +111,8 @@ class SharedMemory_EventHeader{
 
         uint8_t type;
 
-        INode srcnode;
-        INode dstnode;
+        INode &srcnode;
+        INode &dstnode;
 
         uint32_t length;
 
@@ -151,11 +151,12 @@ class SharedMemory_EventHeader{
 
             if(this->headercrc32 != this->calculateHeaderChecksum()){
                 // throw exception
+                throw GScale::Exception("invalid checksum during archive load", ECOMM, __FILE__, __LINE__);
             }
         }
         BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
-
+*/
 } // Backend
 
 } // GScale

@@ -11,7 +11,7 @@
 
 class ShmCallbacks : public GScale::INodeCallback{
     public:
-    ShmCallbacks(){
+      ShmCallbacks(){
 
         }
         ~ShmCallbacks(){}

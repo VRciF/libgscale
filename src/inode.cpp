@@ -13,12 +13,22 @@
 
 namespace GScale{
 
-INode::INode() : hostuuid(Core::getInstance()->getHostUUID()), nodeuuid(boost::uuids::random_generator()()){}
-INode::INode(std::string alias) : hostuuid(Core::getInstance()->getHostUUID()), nodeuuid(boost::uuids::random_generator()()), alias(alias){}
-INode::INode(boost::uuids::uuid uuid) : hostuuid(Core::getInstance()->getHostUUID()), nodeuuid(uuid){}
-INode::INode(boost::uuids::uuid uuid, std::string alias) : hostuuid(Core::getInstance()->getHostUUID()), nodeuuid(uuid), alias(alias){}
+INode::INode() : hostuuid(Core::getInstance()->getHostUUID()), nodeuuid(boost::uuids::random_generator()()){
+    this->ctime = boost::posix_time::microsec_clock::universal_time();
+}
+INode::INode(std::string alias) : hostuuid(Core::getInstance()->getHostUUID()), nodeuuid(boost::uuids::random_generator()()), alias(alias){
+    this->ctime = boost::posix_time::microsec_clock::universal_time();
+}
+INode::INode(boost::uuids::uuid uuid) : hostuuid(Core::getInstance()->getHostUUID()), nodeuuid(uuid){
+    this->ctime = boost::posix_time::microsec_clock::universal_time();
+}
+INode::INode(boost::uuids::uuid uuid, std::string alias) : hostuuid(Core::getInstance()->getHostUUID()), nodeuuid(uuid), alias(alias){
+    this->ctime = boost::posix_time::microsec_clock::universal_time();
+}
 
-INode::INode(boost::uuids::uuid hostuuid, boost::uuids::uuid uuid) : hostuuid(hostuuid), nodeuuid(uuid){}
+INode::INode(boost::uuids::uuid hostuuid, boost::uuids::uuid uuid) : hostuuid(hostuuid), nodeuuid(uuid){
+    this->ctime = boost::posix_time::microsec_clock::universal_time();
+}
 
 INode::~INode(){}
 
@@ -45,6 +55,15 @@ std::string INode::getAlias() const{
 	return this->alias;
 }
 
+boost::posix_time::ptime INode::created(){
+    return this->ctime;
+}
+boost::posix_time::ptime INode::created(boost::posix_time::ptime ctime){
+    if(!ctime.is_not_a_date_time()){
+        this->ctime = ctime;
+    }
+    return this->ctime;
+}
 
 inline bool INode::operator== (const INode &b) const
 {

@@ -6,6 +6,8 @@
 #ifndef EXCEPTION_HPP_
 #define EXCEPTION_HPP_
 
+#include <errno.h>
+
 #include <string>
 #include <exception>
 #include <sstream>
@@ -14,20 +16,27 @@ namespace GScale{
 
 class Exception : public std::exception{
     public:
-	    Exception(const char *file, const int line);
-	    Exception(const std::string file, const int line);
-	    /*
-	    interprocess_exception(const char *);
-	      interprocess_exception(const error_info &, const char * = 0);
-	      */
+        Exception(const char *message=NULL, const int code=0, const char *file=NULL, const int line=0);
+        Exception(const std::string message, const int code=0, const std::string file=std::string(), const int line=0);
+
 	    virtual ~Exception() throw();
+
+	    int getCode();
+	    int getSystemCode();
+	    std::string getFile();
+	    int getLine();
 
 	    Exception& setLine(const int line);
 	    Exception& setFile(const char *file);
 	    Exception& setFile(const std::string file);
 	    Exception& setCode(const int code);
 
-	    std::stringstream& getMessage();
+	    template<class T> Exception& operator<<(T& r) {
+	        if(this->message!=NULL){
+	            *this->message << r;
+	        }
+	        return *this;
+	    }
 
         virtual const char* what() const throw();
         /*
@@ -41,6 +50,7 @@ class Exception : public std::exception{
         std::string file;
 
         int code;
+        int errn;
         std::stringstream *message;
 };
 

@@ -8,11 +8,11 @@
 
 #include <string>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/serialization/access.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-
-#include <boost/serialization/access.hpp>
 
 namespace GScale{
 
@@ -33,7 +33,10 @@ class INode{
 	    const boost::uuids::uuid getNodeUUID() const;
 
 	    std::string getAlias() const;
-	    bool isLocal() const;
+	    virtual bool isLocal() const;
+
+        boost::posix_time::ptime created();
+        boost::posix_time::ptime created(boost::posix_time::ptime ctime);
 
 	    inline bool operator== (const INode &b) const;
 
@@ -52,6 +55,8 @@ class INode{
 		boost::uuids::uuid hostuuid;
 		boost::uuids::uuid nodeuuid;
 		std::string alias;
+
+	    boost::posix_time::ptime ctime;
 };
 
 }

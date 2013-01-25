@@ -8,9 +8,9 @@
 
 #include <string>
 
-#include "inode.hpp"
-
 namespace GScale{
+
+class INode;
 
 class Packet{
     public:
