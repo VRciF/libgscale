@@ -16,9 +16,9 @@ class TCPCallbacks : public GScale::INodeCallback{
         ~TCPCallbacks(){}
 
         void OnRead(GScale::Group *g, const GScale::Packet &packet) {
-            std::cout << "node '" << (packet.getReceiver()->getAlias()) << "' ";
-            std::cout << "received '" << packet.getPayload() << "' ";
-            std::cout << "from '" << (packet.getSender()->getAlias()) << "'" << std::endl;
+            std::cout << "node '" << (packet.getReceiver().getAlias()) << "' ";
+            std::cout << "received '" << packet.payload() << "' ";
+            std::cout << "from '" << (packet.getSender().getAlias()) << "'" << std::endl;
 
             //this->handleCommunication(g, packet.getSender(), packet.getReceiver());
         }

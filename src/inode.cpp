@@ -3,12 +3,15 @@
  *
  */
 
+#include "inode.hpp"
+
+#include <arpa/inet.h>
+
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
 #include <boost/uuid/string_generator.hpp>
 
-#include "inode.hpp"
 #include "core.hpp"
 
 namespace GScale{
@@ -55,7 +58,7 @@ std::string INode::getAlias() const{
 	return this->alias;
 }
 
-boost::posix_time::ptime INode::created(){
+boost::posix_time::ptime INode::created() const{
     return this->ctime;
 }
 boost::posix_time::ptime INode::created(boost::posix_time::ptime ctime){
@@ -69,5 +72,23 @@ inline bool INode::operator== (const INode &b) const
 {
     return b.nodeuuid==this->nodeuuid;
 }
+
+void INode::saveUUID(const boost::uuids::uuid &source, unsigned char (&result)[16]){
+    memcpy(result, &source, 16);
+
+    *((uint32_t*)(&result[0])) = htonl(*((uint32_t*)(&result[0])));
+    *((uint32_t*)(&result[4])) = htonl(*((uint32_t*)(&result[4])));
+    *((uint32_t*)(&result[8])) = htonl(*((uint32_t*)(&result[8])));
+    *((uint32_t*)(&result[12])) = htonl(*((uint32_t*)(&result[12])));
+}
+void INode::loadUUID(boost::uuids::uuid &result, unsigned char (&source)[16]){
+    *((uint32_t*)(&source[0])) = ntohl(*((uint32_t*)(&source[0])));
+    *((uint32_t*)(&source[4])) = ntohl(*((uint32_t*)(&source[4])));
+    *((uint32_t*)(&source[8])) = ntohl(*((uint32_t*)(&source[8])));
+    *((uint32_t*)(&source[12])) = ntohl(*((uint32_t*)(&source[12])));
+
+    memcpy(source, &result, 16);
+}
+
 
 }

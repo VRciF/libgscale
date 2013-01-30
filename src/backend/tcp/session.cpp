@@ -5,13 +5,19 @@
 
 #include "session.hpp"
 
+#include <boost/bind.hpp>
+
+#include "group.hpp"
+#include "tcp.hpp"
+
 namespace GScale{
 
 namespace Backend{
 
-TCP_Session::TCP_Session(TCP *backend,boost::asio::io_service& io_service) : socket_(io_service)
+TCP_Session::TCP_Session(TCP *backend, boost::asio::io_service& io_service) : io_service(io_service),socket_(io_service)
 {
     this->backend = backend;
+    this->proto.reset(new TCP_Protocol<TCP_Session>(this->socket(), *this));
 }
 
 boost::asio::ip::tcp::socket& TCP_Session::socket()
@@ -20,17 +26,64 @@ boost::asio::ip::tcp::socket& TCP_Session::socket()
 }
 
 void TCP_Session::start(){
-    this->io_service.dispatch(boost::bind(&TCP_Session::syncNodeList, it->second));
+    this->io_service.dispatch(boost::bind(&TCP_Session::syncNodeList, this));
 }
+
+void TCP_Session::onReadError(const boost::system::error_code& error){
+    this->close();
+}
+void TCP_Session::onSendError(const boost::system::error_code& error){
+    this->close();
+}
+
+void TCP_Session::onRead(Packet &p){
+    // dispatch packet!
+    switch(p.type()){
+        case Packet::MIN: case Packet::MAX:
+            break;
+
+        case Packet::NODEAVAIL:
+            break;
+        case Packet::NODEUNAVAIL:
+            break;
+        case Packet::DATA:
+            break;
+    }
+}
+void TCP_Session::sendFinished(Packet &p){
+    this->io_service.dispatch(boost::bind(&TCP_Session::syncNodeList, this));
+}
+
 void TCP_Session::close(){
     this->socket_.close();
     if(this->onclose){
-        this->onclose();
+        this->io_service.dispatch(this->onclose);
     }
 }
 
+
+
 void TCP_Session::syncNodeList(){
     std::pair<GScale::Group::LocalNodesSetIdx_creationtime::iterator, GScale::Group::LocalNodesSetIdx_creationtime::iterator> range;
+    if(this->nodesyncctime.is_not_a_date_time()){
+        range = this->backend->gdao->rangeByCreated();
+    }
+    else{
+        range = this->backend->gdao->rangeByCreated(this->nodesyncctime);
+        if(range.first!=range.second && range.first->created()==this->nodesyncctime){
+            range.first++;
+        }
+    }
+
+    if(range.first==range.second){ return; }
+
+    Packet p(*range.first, INode::getNilNode());
+    p.type(Packet::NODEAVAIL);
+    this->proto->send<Packet>(p);
+    this->nodesyncctime = range.first->created();
+
+    /*
+
 
     if(this->nodesyncctime.is_not_a_date_time()){ // start sync
         this->state = STATES.SYNC;
@@ -48,6 +101,7 @@ void TCP_Session::syncNodeList(){
     for(;range.first != range.second; range.first++){
         // send node avail packet
     }
+    */
 }
 
 boost::asio::ip::tcp::endpoint TCP_Session::remote_endpoint() const{

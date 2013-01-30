@@ -24,9 +24,9 @@ class Loopback : public GScale::Backend::IBackend{
 		void initialize(GScale::Group *group, GScale::GroupNodesDAO *gdao);
 
 		/* called when a node becomes available */
-		void OnLocalNodeAvailable(const GScale::INode *node);
+		void OnLocalNodeAvailable(GScale::LocalNode node);
 		/* called when a local node becomes unavailable */
-		void OnLocalNodeUnavailable(const GScale::INode *node);
+		void OnLocalNodeUnavailable(GScale::LocalNode node);
 
 		/* called when a local node writes data to the group */
 		unsigned int OnLocalNodeWritesToGroup(const GScale::Packet &packet);

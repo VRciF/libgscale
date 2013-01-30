@@ -165,7 +165,7 @@ SharedMemory::~SharedMemory(){
     }
 }
 
-void SharedMemory::OnLocalNodeAvailable(const GScale::INode *node){
+void SharedMemory::OnLocalNodeAvailable(GScale::LocalNode node){
     /*
     SharedMemory_EventHeader evavail;
 
@@ -194,7 +194,7 @@ void SharedMemory::OnLocalNodeAvailable(const GScale::INode *node){
      */
 }
 /* called when a local node becomes unavailable */
-void SharedMemory::OnLocalNodeUnavailable(const GScale::INode *node){
+void SharedMemory::OnLocalNodeUnavailable(GScale::LocalNode node){
     /*
     SharedMemory_EventHeader evavail;
 

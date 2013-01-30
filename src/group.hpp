@@ -77,12 +77,12 @@ class Group{
 	    	}
 	    }
 
-	    void runWorker(struct timeval *timeout);
+	    void runWorker(struct timeval *timeout = NULL);
 
-	    const GScale::LocalNodePtr connect(std::string nodealias, GScale::INodeCallback &cbs);
-	    const GScale::LocalNodePtr connect(GScale::INodeCallback &cbs);
+	    const GScale::LocalNode connect(std::string nodealias, GScale::INodeCallback &cbs);
+	    const GScale::LocalNode connect(GScale::INodeCallback &cbs);
 
-	    void disconnect(const GScale::LocalNodePtr node);
+	    void disconnect(const GScale::LocalNode node);
 
 	    void write(const GScale::Packet &payload);
 
@@ -102,11 +102,11 @@ class Group{
 	    struct idxname_created{};
 	    struct idxname_nodeuuid{};
 	    typedef boost::multi_index_container<
-	      LocalNodePtr,
+	      LocalNode,
 	      boost::multi_index::indexed_by<
 	          boost::multi_index::ordered_unique<
 	              boost::multi_index::tag<idxname_created>,
-	              boost::multi_index::mem_fun<GScale::INode,boost::posix_time::ptime,&GScale::INode::created>
+	              boost::multi_index::const_mem_fun<GScale::INode,boost::posix_time::ptime,&GScale::INode::created>
 	          >,
 	          boost::multi_index::ordered_unique<
 	              boost::multi_index::tag<idxname_nodeuuid>,
@@ -139,12 +139,12 @@ class GroupNodesDAO{
         GroupNodesDAO(GScale::Group *group);
         ~GroupNodesDAO();
 
-        template<Typename T>
-        GScale::Group::LocalNodesSet::index<T>::type::iterator begin(){
+        template<typename T>
+        typename GScale::Group::LocalNodesSet::index<T>::type::iterator begin(){
             return this->group->localnodes.get<T>().begin();
         }
-        template<Typename T>
-        GScale::Group::LocalNodesSet::index<T>::type::iterator end(){
+        template<typename T>
+        typename  GScale::Group::LocalNodesSet::index<T>::type::iterator end(){
             return this->group->localnodes.get<T>().end();
         }
 

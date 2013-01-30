@@ -32,7 +32,7 @@ void TCP::initialize(GScale::Group *group, GScale::GroupNodesDAO *gdao){
 }
 TCP::~TCP(){}
 
-void TCP::OnLocalNodeAvailable(const GScale::INode *node)
+void TCP::OnLocalNodeAvailable(GScale::LocalNode node)
 {
     /*
     GScale::Group::LocalNodesSetIdx_uuid::iterator it = this->gdao->begin();
@@ -43,7 +43,7 @@ void TCP::OnLocalNodeAvailable(const GScale::INode *node)
     */
 }
 
-void TCP::OnLocalNodeUnavailable(const GScale::INode *node)
+void TCP::OnLocalNodeUnavailable(GScale::LocalNode node)
 {
     /*
     GScale::Group::LocalNodesSetIdx_uuid::iterator it = this->gdao->begin();
@@ -97,7 +97,7 @@ void TCP::uuid_read_finished(const boost::system::error_code& error, std::size_t
 
 void TCP::start_accept(Acceptor_ptr acceptor_)
 {
-    TCP_Session_ptr new_session(new TCP_Session(this->io_service));
+    TCP_Session_ptr new_session(new TCP_Session(this, this->io_service));
     acceptor_->async_accept(new_session->socket(),
         boost::bind(&TCP::handle_socket_init, this, acceptor_, new_session,
             boost::asio::placeholders::error));
@@ -151,7 +151,7 @@ void TCP::handle_receive_from(const boost::system::error_code& error, size_t byt
               endpoint = boost::asio::ip::tcp::endpoint(this->mcast_sender_endpoint_v6.address(), packet.ip_port);
           }
 
-          TCP_Session_ptr new_session(new TCP_Session(this->io_service));
+          TCP_Session_ptr new_session(new TCP_Session(this, this->io_service));
           new_session->socket().async_connect(endpoint, boost::bind(&TCP::handle_socket_init, this, Acceptor_ptr(), new_session, boost::asio::placeholders::error));
       }
       else{
@@ -223,7 +223,7 @@ void TCP::bind_or_connect(){
             this->start_accept(Acceptor_ptr(this->acceptor_v4.get()));
         }
         catch(...){
-            this->local_v4.reset(new TCP_Session(this->io_service));
+            this->local_v4.reset(new TCP_Session(this, this->io_service));
             this->local_v4->socket().connect(localep, ec);
 
             if(!ec){

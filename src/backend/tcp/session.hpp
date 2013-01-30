@@ -11,6 +11,11 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/function.hpp>
 
+#include <algorithm>
+
+#include "packet.hpp"
+#include "protocol.hpp"
+
 namespace GScale{
 
 namespace Backend{
@@ -27,11 +32,17 @@ class TCP_Session
         }
 
         boost::asio::ip::tcp::socket& socket();
+        boost::asio::ip::tcp::endpoint remote_endpoint() const;
+        boost::asio::ip::tcp::endpoint local_endpoint() const;
+
+        void syncNodeList();
 
         void start();
 
-        boost::asio::ip::tcp::endpoint remote_endpoint() const;
-        boost::asio::ip::tcp::endpoint local_endpoint() const;
+        void onReadError(const boost::system::error_code& error);
+        void onSendError(const boost::system::error_code& error);
+        void onRead(Packet &p);
+        void sendFinished(Packet &p);
 
         void close();
 
@@ -39,6 +50,7 @@ class TCP_Session
         boost::uuids::uuid remotehostuuid;
 
     private:
+        boost::asio::io_service &io_service;
         boost::asio::ip::tcp::socket socket_;
         char readbuffer[64*1024];  // 64KB buffer
         char writebuffer[64*1024];  // 64KB buffer
@@ -48,6 +60,8 @@ class TCP_Session
 
         enum STATES { MIN=0, SYNC, AVAIL, MAX} state;
         boost::posix_time::ptime nodesyncctime;
+
+        boost::shared_ptr<TCP_Protocol<TCP_Session>  > proto;
 };
 
 typedef boost::shared_ptr<TCP_Session> TCP_Session_ptr;

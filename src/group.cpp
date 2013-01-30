@@ -59,48 +59,46 @@ void Group::runWorker(struct timeval *timeout){
     LOG();
 }
 
-const GScale::LocalNodePtr Group::connect(std::string nodealias, GScale::INodeCallback &cbs){
-    LocalNodePtr node;
+const GScale::LocalNode Group::connect(std::string nodealias, GScale::INodeCallback &cbs){
     boost::posix_time::ptime now;
 
     do{
         now = boost::posix_time::microsec_clock::universal_time();
     }while(this->localnodes.get<0>().find(now)!=this->localnodes.end());
-
-    node.reset(new GScale::LocalNode(nodealias, cbs, now));
+    LocalNode node (nodealias, cbs, now);
 
 	std::map<std::string, GScale::Backend::IBackend*>::iterator it;
 
 	for(it = this->backends.begin(); it != this->backends.end(); it++){
-	    this->io_service.post(boost::bind(&GScale::Backend::IBackend::OnLocalNodeAvailable, it->second, node.get()));
+	    this->io_service.post(boost::bind(&GScale::Backend::IBackend::OnLocalNodeAvailable, it->second, node));
 	}
 
 	this->localnodes.insert(node);
 	return node;
 }
-const GScale::LocalNodePtr Group::connect(GScale::INodeCallback &cbs){
+const GScale::LocalNode Group::connect(GScale::INodeCallback &cbs){
 	return this->connect(std::string(), cbs);
 }
 
-void Group::disconnect(const GScale::LocalNodePtr node){
-    if(this->localnodes.get<1>().find(node->getNodeUUID()) != this->localnodes.get<1>().end()){
-        this->localnodes.get<1>().erase(this->localnodes.get<1>().find(node->getNodeUUID()));
+void Group::disconnect(const GScale::LocalNode node){
+    if(this->localnodes.get<1>().find(node.getNodeUUID()) != this->localnodes.get<1>().end()){
+        this->localnodes.get<1>().erase(this->localnodes.get<1>().find(node.getNodeUUID()));
     }
 
 	std::map<std::string, GScale::Backend::IBackend*>::iterator it;
 
 	// -1 is the newly inserted node above
 	for(it = this->backends.begin(); it != this->backends.end(); it++){
-	    this->io_service.post(boost::bind(&GScale::Backend::IBackend::OnLocalNodeUnavailable, it->second, node.get()));
+	    this->io_service.post(boost::bind(&GScale::Backend::IBackend::OnLocalNodeUnavailable, it->second, node));
 	}
 }
 
-void Group::write(const GScale::Packet &payload/*, Future result */){
+void Group::write(const GScale::Packet &packet/*, Future result */){
 	std::map<std::string, GScale::Backend::IBackend*>::iterator it;
 
 	// -1 is the newly inserted node above
 	for(it = this->backends.begin(); it != this->backends.end(); it++){
-	    this->io_service.post(boost::bind(&GScale::Backend::IBackend::OnLocalNodeWritesToGroup, it->second, payload));
+	    this->io_service.post(boost::bind(&GScale::Backend::IBackend::OnLocalNodeWritesToGroup, it->second, packet));
 	}
 }
 

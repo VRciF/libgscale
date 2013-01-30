@@ -42,11 +42,11 @@ class LoopbackCallbacks : public GScale::INodeCallback{
 	    ~LoopbackCallbacks(){}
 
 	    void OnRead(GScale::Group *g, const GScale::Packet &packet) {
-	    	std::cout << "node '" << (packet.getReceiver()->getAlias()) << "' ";
-	    	std::cout << "received '" << packet.getPayload() << "' ";
-	    	std::cout << "from '" << (packet.getSender()->getAlias()) << "'" << std::endl;
+	    	std::cout << "node '" << (packet.getReceiver().getAlias()) << "' ";
+	    	std::cout << "received '" << packet.payload() << "' ";
+	    	std::cout << "from '" << (packet.getSender().getAlias()) << "'" << std::endl;
 
-	        this->handleCommunication(g, packet.getSender(), packet.getReceiver());
+	        this->handleCommunication(g, &packet.getSender(), &packet.getReceiver());
 	    }
 
 	    void OnNodeAvailable(GScale::Group *g, const GScale::INode *src, const GScale::INode *dst) {
@@ -83,8 +83,8 @@ class LoopbackCallbacks : public GScale::INodeCallback{
 	        if (it->second.length() > 0) {
 	        	// NOTE: we need to switch dst/src because we're sending a new message
 	        	// so the event destination becomes the packet's source
-	            GScale::Packet data(dst, src);
-	            data.setPayload(it->second);
+	            GScale::Packet data(*dst, *src);
+	            data.payload(it->second);
 
 	            group->write(data);
 	        }
@@ -107,15 +107,15 @@ int main(int argc, char** argv){
      * but this example shows that the local loopback backend doesnt need a GScale_work(); call
      * to do its magic
      */
-	const GScale::LocalNodePtr carol = g->connect("Carol", cbs);
-	const GScale::LocalNodePtr carlos = g->connect("Carlos", cbs);
-	const GScale::LocalNodePtr nameless = g->connect(cbs);
-	g-> runWorker(NULL);
+	const GScale::LocalNode carol = g->connect("Carol", cbs);
+	const GScale::LocalNode carlos = g->connect("Carlos", cbs);
+	const GScale::LocalNode nameless = g->connect(cbs);
+	g-> runWorker();
 
 	g->disconnect(carlos);
 	g->disconnect(nameless);
 	g->disconnect(carol);
-	g-> runWorker(NULL);
+	g-> runWorker();
 
     return 0;
 }
