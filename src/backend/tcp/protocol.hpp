@@ -72,11 +72,18 @@ class TCP_Protocol{
             else{
                 this->alreadysent += bytes_transferred; // excludes header size
                 switch(this->outstate){
+                    case MIN: case MAX:
+                    {
+                    }
+                    break;
                     case FREE:
+                    {
                         this->writeoffset = 0;
                         this->alreadysent = 0;
                         this->outstate = HEADER;
+                    }
                     case HEADER:
+                    {
                         boost::system::error_code ec;
                         this->writeHeader(p, ec);
                         if(ec){
@@ -88,7 +95,9 @@ class TCP_Protocol{
                         }
                         this->alreadysent = 0;
                         this->outstate = PAYLOAD;
+                    }
                     case PAYLOAD:
+                    {
                         uint32_t todo = p.size() - this->alreadysent;
                         uint32_t fillsize = this->BUFFSIZE-this->writeoffset;
 
@@ -107,6 +116,7 @@ class TCP_Protocol{
                             this->sub.sendFinished(p);
                             return;
                         }
+                    }
                         break;
                 }
             }
@@ -114,7 +124,7 @@ class TCP_Protocol{
             if(this->socket_.is_open() && this->writeoffset>0){
                 // async_write calls onSend only if an error occured OR all data has been written
                 boost::asio::async_write(this->socket_, boost::asio::buffer(this->outbuffer, this->writeoffset),
-                                         boost::bind(&TCP_Protocol<Subscriber>::onSend, this, p, boost::asio::placeholders::error,
+                                         boost::bind((void(TCP_Protocol::*)(Packet&,const boost::system::error_code&,std::size_t))&TCP_Protocol::onSend, this, p, boost::asio::placeholders::error,
                                                      boost::asio::placeholders::bytes_transferred));
                 this->writeoffset = 0;
             }
@@ -149,7 +159,7 @@ class TCP_Protocol{
             }
 
             // has the packet a payload?
-            this->outbuffer[this->writeoffset] = p.size>0 ? 1 : 0; // 1 byte for payload check
+            this->outbuffer[this->writeoffset] = p.size()>0 ? 1 : 0; // 1 byte for payload check
             this->writeoffset++;
 
             // save header size
@@ -182,11 +192,15 @@ class TCP_Protocol{
             while(bytes_transferred>0){
                 switch(this->instate){
                     case MIN: case MAX:
+                    {
+                    }
                         break;
                     case FREE: // this means, we're expecting a header at first
+                    {
                         this->instate = HEADER;
                         this->alreadyread = 0;
                         this->readoffset = 0;
+                    }
                     case HEADER:
                     {
                         if(this->readoffset < 5){

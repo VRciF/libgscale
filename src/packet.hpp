@@ -36,7 +36,7 @@ class Packet{
         template<class Archive>
         void save(Archive & ar, const unsigned int version) const
         {
-            int t = this->type;
+            int t = this->type_;
             // note, version is always the latest when saving
             ar & this->sender;
             ar & this->receiver;
@@ -50,7 +50,7 @@ class Packet{
             ar & this->sender;
             ar & this->receiver;
             ar & t;
-            this->type = static_cast<METATYPE>(t);
+            this->type_ = static_cast<METATYPE>(t);
         }
         BOOST_SERIALIZATION_SPLIT_MEMBER();
 

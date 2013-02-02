@@ -40,9 +40,9 @@ class TCP_Session
         void start();
 
         void onReadError(const boost::system::error_code& error);
-        void onSendError(const boost::system::error_code& error);
-        void onRead(Packet &p);
-        void sendFinished(Packet &p);
+        void onSendError(GScale::Packet &p, const boost::system::error_code& error);
+        void onRead(GScale::Packet &p);
+        void sendFinished(GScale::Packet &p);
 
         void close();
 
@@ -60,6 +60,7 @@ class TCP_Session
 
         enum STATES { MIN=0, SYNC, AVAIL, MAX} state;
         boost::posix_time::ptime nodesyncctime;
+        GScale::Packet syncpacket;
 
         boost::shared_ptr<TCP_Protocol<TCP_Session>  > proto;
 };

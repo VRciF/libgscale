@@ -32,7 +32,7 @@ void TCP_Session::start(){
 void TCP_Session::onReadError(const boost::system::error_code& error){
     this->close();
 }
-void TCP_Session::onSendError(const boost::system::error_code& error){
+void TCP_Session::onSendError(GScale::Packet &p, const boost::system::error_code& error){
     this->close();
 }
 
@@ -77,9 +77,9 @@ void TCP_Session::syncNodeList(){
 
     if(range.first==range.second){ return; }
 
-    Packet p(*range.first, INode::getNilNode());
-    p.type(Packet::NODEAVAIL);
-    this->proto->send<Packet>(p);
+    this->syncpacket = GScale::Packet(*range.first, INode::getNilNode());
+    this->syncpacket.type(Packet::NODEAVAIL);
+    this->proto->send<Packet>(this->syncpacket);
     this->nodesyncctime = range.first->created();
 
     /*

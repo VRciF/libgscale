@@ -75,8 +75,8 @@ class INode{
 	    BOOST_SERIALIZATION_SPLIT_MEMBER();
 
 	protected:
-	    void saveUUID(const boost::uuids::uuid &source, unsigned char (&result)[16]);
-	    void loadUUID(boost::uuids::uuid &result, unsigned char (&source)[16]);
+	    static void saveUUID(const boost::uuids::uuid &source, unsigned char (&result)[16]);
+	    static void loadUUID(boost::uuids::uuid &result, unsigned char (&source)[16]);
 
 		boost::uuids::uuid hostuuid;
 		boost::uuids::uuid nodeuuid;
