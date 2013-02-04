@@ -19,12 +19,13 @@ namespace GScale{
 
 class INode{
 	public:
-	    INode();
-	    INode(std::string alias);
+	    INode(std::string alias=std::string());
 	    INode(boost::uuids::uuid uuid);
 	    INode(boost::uuids::uuid uuid, std::string alias);
 
         INode(boost::uuids::uuid hostuuid, boost::uuids::uuid uuid);
+
+        INode(const INode &node);
 
         virtual ~INode();
 
@@ -36,9 +37,6 @@ class INode{
 	    std::string getAlias() const;
 	    virtual bool isLocal() const;
 
-        boost::posix_time::ptime created() const;
-        boost::posix_time::ptime created(boost::posix_time::ptime ctime);
-
 	    inline bool operator== (const INode &b) const;
 
 	    // the reason i don't use uuid serialize is
@@ -47,7 +45,7 @@ class INode{
 	    //    if the serialized data is sent over the wire to another host using different host byte order
 	    friend class boost::serialization::access;
 	    template<class Archive>
-	    void save(Archive & ar, const unsigned int version) const
+	    void save(Archive & ar, const unsigned int /*version*/) const
 	    {
 	        unsigned char uuid[16];
 
@@ -60,7 +58,7 @@ class INode{
             ar & alias;
 	    }
 	    template<class Archive>
-	    void load(Archive & ar, const unsigned int version)
+	    void load(Archive & ar, const unsigned int /*version*/)
 	    {
 	        unsigned char uuid[16];
 
@@ -72,7 +70,7 @@ class INode{
 
             ar & alias;
 	    }
-	    BOOST_SERIALIZATION_SPLIT_MEMBER();
+	    BOOST_SERIALIZATION_SPLIT_MEMBER()
 
 	protected:
 	    static void saveUUID(const boost::uuids::uuid &source, unsigned char (&result)[16]);
@@ -81,8 +79,6 @@ class INode{
 		boost::uuids::uuid hostuuid;
 		boost::uuids::uuid nodeuuid;
 		std::string alias;
-
-	    boost::posix_time::ptime ctime;
 };
 
 }

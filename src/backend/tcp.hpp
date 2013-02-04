@@ -38,7 +38,7 @@ class TCP : public GScale::Backend::IBackend{
 
     public:
         TCP();
-        void initialize(GScale::Group *group, GScale::GroupNodesDAO *gdao);
+        void initialize(GScale::GroupCore *groupc, GScale::GroupNodesDAO *gdao);
         ~TCP();
 
         /* called when a node becomes available */
@@ -73,7 +73,7 @@ class TCP : public GScale::Backend::IBackend{
             // & operator is defined similar to <<.  Likewise, when the class Archive
             // is a type of input archive the & operator is defined similar to >>.ost
             template<class Archive>
-            void serialize(Archive & ar, const unsigned int version)
+            void serialize(Archive & ar, const unsigned int /*version*/)
             {
                 ar & hostuuid;
                 ar & ip_port;
@@ -96,7 +96,6 @@ class TCP : public GScale::Backend::IBackend{
 
             // sort by less<string> on name
             //ordered_non_unique<member<employee,std::string,&employee::name> >
-
           >
         > TCP_Session_Set;
         TCP_Session_Set sessions;
@@ -114,7 +113,7 @@ class TCP : public GScale::Backend::IBackend{
 
         char udp_rcv_buffer[64*1024];
 
-        GScale::Group *group;
+        GScale::GroupCore *groupc;
         GScale::GroupNodesDAO *gdao;
 
         boost::asio::io_service io_service;

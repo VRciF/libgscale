@@ -32,20 +32,17 @@
 
 
 #include "localnode.hpp"
+#include "exception.hpp"
 
 namespace GScale{
-
-#define LOG() std::cout << __FILE__ << ":" << __LINE__ << ":" << __PRETTY_FUNCTION__ << std::endl;
 
 namespace Backend{
     class IBackend;
 }
 
-class INode;
+class GroupCore;
 class INodeCallback;
 class Packet;
-class Exception;
-class GroupNodesDAO;
 
 class Group{
     friend class GroupNodesDAO;
@@ -54,27 +51,23 @@ class Group{
 	    Group(std::string gname) throw();
 	    ~Group();
 
-	    template <class Backend> void attachBackend() throw(){
-	    	Backend *b = new Backend();
-	    	if(b==NULL){
-	    		throw GScale::Exception("not enough memory", ENOMEM, __FILE__,__LINE__);
+	    template <class Backend> void attachBackend(){
+	    	Backend *b = NULL;
+	    	try{
+	    	    b = new Backend();
+	    	    this->attachBackend(typeid(Backend).name(), b);
 	    	}
-	    	b->initialize(this, this->gdao);
-
-			std::pair<std::map<std::string, GScale::Backend::IBackend*>::iterator,bool> p;
-			p = this->backends.insert(  std::pair<std::string, GScale::Backend::IBackend*>(typeid(Backend).name(),b) );
-			if(p.second == false){
-				throw GScale::Exception("backend insert failed", ENOMEM, __FILE__,__LINE__);
-			}
+	    	catch(GScale::Exception &g){
+	    		if(b!=NULL){ delete b; }
+	    		throw g;
+	    	}
+	    	catch(...){
+	    		if(b!=NULL){ delete b; }
+	    		throw GScale::Exception(__FILE__, __LINE__);
+	    	}
 	    }
 	    template <class Backend> void detachBackend(){
-	    	std::map<std::string, GScale::Backend::IBackend*>::iterator it;
-	    	it = this->backends.find(typeid(Backend).name());
-	    	if(it!=this->backends.end()){
-				Backend *b = it->second;
-				delete b;
-				this->backends.erase(it);
-	    	}
+	    	this->detachBackend(typeid(Backend).name());
 	    }
 
 	    void runWorker(struct timeval *timeout = NULL);
@@ -86,76 +79,16 @@ class Group{
 
 	    void write(const GScale::Packet &payload);
 
-/*
-	    int32_t write(GScale::INode *src,
-	            const boost::uuids::uuid *dst, std::string *data);
-	    template <class Backend>
-	    int32_t writeBackend(uint8_t type, GScale::INode *src,
-	            const boost::uuids::uuid *dst, std::string *data);
-*/
 	    int getEventDescriptor();
 
 	    std::string getName();
 
+	private:
+	    void attachBackend(std::string type, GScale::Backend::IBackend *backend);
+	    void detachBackend(std::string type);
 
-        // define a multiply indexed set with indices by id and name
-	    struct idxname_created{};
-	    struct idxname_nodeuuid{};
-	    typedef boost::multi_index_container<
-	      LocalNode,
-	      boost::multi_index::indexed_by<
-	          boost::multi_index::ordered_unique<
-	              boost::multi_index::tag<idxname_created>,
-	              boost::multi_index::const_mem_fun<GScale::INode,boost::posix_time::ptime,&GScale::INode::created>
-	          >,
-	          boost::multi_index::ordered_unique<
-	              boost::multi_index::tag<idxname_nodeuuid>,
-	              boost::multi_index::const_mem_fun<GScale::INode,const boost::uuids::uuid,&GScale::INode::getNodeUUID>
-	          >
-	      >
-	    > LocalNodesSet;
-	    typedef LocalNodesSet::index<idxname_created>::type LocalNodesSetIdx_creationtime;
-	    typedef LocalNodesSet::index<idxname_nodeuuid>::type LocalNodesSetIdx_uuid;
-/*
-	    typedef std::pair<GScale::LocalNodesSetIdx_creationtime::iterator, GScale::LocalNodesSetIdx_creationtime::iterator> LocalNodesSetRange_creationtime;
-	    typedef LocalNodesSetIdx_creationtime::iterator LocalNodesSetIterator_creationtime;
-	    typedef LocalNodesSetIdx_uuid::iterator LocalNodesSetIterator_uuid;
-*/
-    private:
-	    LocalNodesSet localnodes;
-
-	    std::map<std::string, GScale::Backend::IBackend*> backends;
-
-	    std::string gname;
-	    int processingdeferred;
-
-	    boost::asio::io_service io_service;
-	    GroupNodesDAO *gdao;
+	    GScale::GroupCore *gcore;
 };
-
-
-class GroupNodesDAO{
-    public:
-        GroupNodesDAO(GScale::Group *group);
-        ~GroupNodesDAO();
-
-        template<typename T>
-        typename GScale::Group::LocalNodesSet::index<T>::type::iterator begin(){
-            return this->group->localnodes.get<T>().begin();
-        }
-        template<typename T>
-        typename  GScale::Group::LocalNodesSet::index<T>::type::iterator end(){
-            return this->group->localnodes.get<T>().end();
-        }
-
-        std::pair<GScale::Group::LocalNodesSetIdx_creationtime::iterator, GScale::Group::LocalNodesSetIdx_creationtime::iterator>
-            rangeByCreated(boost::posix_time::ptime min = boost::posix_time::ptime(), boost::posix_time::ptime max = boost::posix_time::ptime());
-        GScale::Group::LocalNodesSetIdx_uuid::iterator findByUUID(boost::uuids::uuid search);
-
-    private:
-        GScale::Group *group;
-};
-
 
 }
 

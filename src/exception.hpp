@@ -16,42 +16,45 @@ namespace GScale{
 
 class Exception : public std::exception{
     public:
-        Exception(const char *message=NULL, const int code=0, const char *file=NULL, const int line=0);
-        Exception(const std::string message, const int code=0, const std::string file=std::string(), const int line=0);
+	    Exception(const int code=errno, const char *file=NULL, const int line=0);
+        Exception(const char *message, const int code=errno, const char *file=NULL, const int line=0);
+        Exception(const std::string message, const int code=errno, const std::string file=std::string(), const int line=0);
 
 	    virtual ~Exception() throw();
 
-	    int getCode();
-	    int getSystemCode();
-	    std::string getFile();
-	    int getLine();
+	    int code();
+	    std::string file();
+	    int line();
 
-	    Exception& setLine(const int line);
-	    Exception& setFile(const char *file);
-	    Exception& setFile(const std::string file);
-	    Exception& setCode(const int code);
+	    Exception& line(const int line);
+	    Exception& file(const char *file);
+	    Exception& file(const std::string file);
+	    Exception& code(const int code);
 
 	    template<class T> Exception& operator<<(T& r) {
-	        if(this->message!=NULL){
-	            *this->message << r;
+	        if(this->smessage!=NULL){
+	            *this->smessage << r;
+	        }
+	        else{
+	        	this->message += r;
 	        }
 	        return *this;
 	    }
 
         virtual const char* what() const throw();
-        /*
-        const char * what() const;
-        native_error_t get_native_error() const;
-        error_code_t get_error_code() const;
-        */
+        int get_native_error() const;
+        int get_error_code() const;
 
     protected:
-        int line;
-        std::string file;
+        void init(const std::string message, const int code=0, const std::string file=std::string(), const int line=0);
 
-        int code;
-        int errn;
-        std::stringstream *message;
+        int line_;
+        std::string file_;
+
+        int code_;
+        int errn_;
+        std::stringstream *smessage;
+        std::string message;
 };
 
 }

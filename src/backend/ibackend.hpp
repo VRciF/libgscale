@@ -10,7 +10,7 @@
 
 namespace GScale{
 
-class Group;
+class GroupCore;
 class GroupNodesDAO;
 class Packet;
 
@@ -20,7 +20,7 @@ class IBackend{
 	public:
 		virtual ~IBackend(){}
 
-		virtual void initialize(GScale::Group *group, GScale::GroupNodesDAO *gdao) = 0;
+		virtual void initialize(GScale::GroupCore *groupc, GScale::GroupNodesDAO *gdao) = 0;
 
 		/* called when a node becomes available */
 		virtual void OnLocalNodeAvailable(GScale::LocalNode node) = 0;

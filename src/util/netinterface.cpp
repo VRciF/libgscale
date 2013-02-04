@@ -97,7 +97,7 @@ std::vector<NetInterface> NetInterface::all(){
         outBufLen *= 2;
         pAddresses = (IP_ADAPTER_ADDRESSES *) malloc(outBufLen);
         if (pAddresses == NULL) {
-            throw GScale::Exception(NULL, 0, __FILE__, __LINE__);
+            throw GScale::Exception().file(__FILE__).line(__LINE__);
         }
 
         dwRetVal =
@@ -185,6 +185,7 @@ std::vector<NetInterface> NetInterface::all(){
             }
             iface->addressEntries << entry;
         }
+        delete iface;
     }
 
     // If successful, output some information from the data we received
@@ -280,7 +281,7 @@ std::vector<NetInterface> NetInterface::all(){
     std::map<std::string, std::vector<struct ifreq *> >::iterator ifit;
 
     static int sck=-1;
-    struct ifconf   ifc = {0};
+    struct ifconf   ifc;
     char            *buf = NULL;
     int             nInterfaces = 0;
     struct ifreq   *ifr = NULL;
@@ -288,11 +289,12 @@ std::vector<NetInterface> NetInterface::all(){
     std::string ifname;
     struct ifreq *item = NULL;
 
+    memset(&ifc, 0, sizeof(ifc));
     /* Get a socket handle. */
     if(sck<0)
       sck = socket(PF_INET, SOCK_DGRAM, 0);
     if(sck < 0) {
-        throw GScale::Exception(__FILE__,__LINE__);
+        throw GScale::Exception().file(__FILE__).line(__LINE__);
     }
 
     /* Query available interfaces. */
@@ -305,14 +307,14 @@ std::vector<NetInterface> NetInterface::all(){
         }
         buf = (char*)calloc(sizeof(char), bufsize);
         if(buf==NULL){
-            throw GScale::Exception(__FILE__,__LINE__);
+        	throw GScale::Exception().file(__FILE__).line(__LINE__);
         }
 
         ifc.ifc_len = bufsize;
         ifc.ifc_buf = buf;
         rval=ioctl(sck, SIOCGIFCONF, &ifc);
         if(rval < 0 && errno!=EOVERFLOW){
-            throw GScale::Exception(__FILE__,__LINE__);
+        	throw GScale::Exception().file(__FILE__).line(__LINE__);
         }
     }while(ifc.ifc_len==bufsize && bufsize<1048576);  // bufsize limit 1 megabyte
 
@@ -377,9 +379,7 @@ NetInterface::NetInterface(std::vector<struct ifreq *> items){
     struct ifreq *first = NULL;
 
     if(items.size()<=0){
-        GScale::Exception except(__FILE__,__LINE__);
-        except.setCode(ENOENT);
-        throw except;
+        throw GScale::Exception(ENOENT,__FILE__,__LINE__);
     }
     first = items[0];
 

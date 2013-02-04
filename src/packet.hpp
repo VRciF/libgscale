@@ -34,7 +34,7 @@ class Packet{
 
         friend class boost::serialization::access;
         template<class Archive>
-        void save(Archive & ar, const unsigned int version) const
+        void save(Archive & ar, const unsigned int /*version*/) const
         {
             int t = this->type_;
             // note, version is always the latest when saving
@@ -43,7 +43,7 @@ class Packet{
             ar & t;
         }
         template<class Archive>
-        void load(Archive & ar, const unsigned int version)
+        void load(Archive & ar, const unsigned int /*version*/)
         {
             int t=0;
             //if(version > 0) ...
@@ -52,7 +52,7 @@ class Packet{
             ar & t;
             this->type_ = static_cast<METATYPE>(t);
         }
-        BOOST_SERIALIZATION_SPLIT_MEMBER();
+        BOOST_SERIALIZATION_SPLIT_MEMBER()
 
 	protected:
 	    GScale::INode sender;

@@ -23,7 +23,7 @@ namespace Backend{
 template<class Subscriber>
 class TCP_Protocol{
     public:
-        TCP_Protocol(boost::asio::ip::tcp::socket &socket_, Subscriber &al, uint32_t buffsize=8192) : sub(sub),socket_(socket_) {
+        TCP_Protocol(boost::asio::ip::tcp::socket &socket_, Subscriber &sub, uint32_t buffsize=8192) : sub(sub),socket_(socket_) {
             if(buffsize<64){
                 throw GScale::Exception("invalid buffer size given, must be greater or equal to 128", EINVAL, __FILE__, __LINE__);
             }
@@ -110,7 +110,7 @@ class TCP_Protocol{
                             this->writeoffset += fillsize;
                             this->alreadysent += fillsize;
                         }
-                        else if(this->writeoffset<0){
+                        else if(this->writeoffset<=0){
                             // everything sent
                             this->outstate = FREE;
                             this->sub.sendFinished(p);

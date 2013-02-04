@@ -35,7 +35,7 @@ class TCP_Session
         boost::asio::ip::tcp::endpoint remote_endpoint() const;
         boost::asio::ip::tcp::endpoint local_endpoint() const;
 
-        void syncNodeList();
+        void enqueueSyncNodeList();
 
         void start();
 
@@ -45,11 +45,15 @@ class TCP_Session
         void sendFinished(GScale::Packet &p);
 
         void close();
+    protected:
+        void syncNodeList();
 
     public:
         boost::uuids::uuid remotehostuuid;
 
     private:
+        bool is_syncnode_enqueued;
+
         boost::asio::io_service &io_service;
         boost::asio::ip::tcp::socket socket_;
         char readbuffer[64*1024];  // 64KB buffer

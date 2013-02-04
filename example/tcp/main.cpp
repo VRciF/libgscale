@@ -15,7 +15,7 @@ class TCPCallbacks : public GScale::INodeCallback{
         }
         ~TCPCallbacks(){}
 
-        void OnRead(GScale::Group *g, const GScale::Packet &packet) {
+        void OnRead(GScale::Group* /*g*/, const GScale::Packet &packet) {
             std::cout << "node '" << (packet.getReceiver().getAlias()) << "' ";
             std::cout << "received '" << packet.payload() << "' ";
             std::cout << "from '" << (packet.getSender().getAlias()) << "'" << std::endl;
@@ -23,14 +23,14 @@ class TCPCallbacks : public GScale::INodeCallback{
             //this->handleCommunication(g, packet.getSender(), packet.getReceiver());
         }
 
-        void OnNodeAvailable(GScale::Group *g, const GScale::INode *src,
+        void OnNodeAvailable(GScale::Group* /*g*/, const GScale::INode *src,
                              const GScale::INode *dst) {
             std::cout << "node '" << (dst->getAlias()) << "' has been notified that ";
             std::cout << "'" << (src->getAlias()) << "' has become available" << std::endl;
 
             //this->handleCommunication(g, src, dst);
         }
-        void OnNodeUnavailable(GScale::Group *g, const GScale::INode *src,
+        void OnNodeUnavailable(GScale::Group* /*g*/, const GScale::INode *src,
                                const GScale::INode *dst) {
             std::cout << "node '" << (dst->getAlias()) << "' has been notified that ";
             std::cout << "'" << (src->getAlias()) << "' has become unavailable" << std::endl;
@@ -72,9 +72,7 @@ class TCPCallbacks : public GScale::INodeCallback{
         */
 };
 
-int main(int argc, char** argv){
-    LOG();
-
+int main(int /*argc*/, char** /*argv*/){
     GScale::Group *g = new GScale::Group("networkchat-example");
     g->attachBackend<GScale::Backend::TCP>();
 

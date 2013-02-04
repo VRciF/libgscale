@@ -7,7 +7,7 @@
 
 #include <boost/bind.hpp>
 
-#include "group.hpp"
+#include "groupcore.hpp"
 #include "tcp.hpp"
 
 namespace GScale{
@@ -16,6 +16,7 @@ namespace Backend{
 
 TCP_Session::TCP_Session(TCP *backend, boost::asio::io_service& io_service) : io_service(io_service),socket_(io_service)
 {
+	this->is_syncnode_enqueued = false;
     this->backend = backend;
     this->proto.reset(new TCP_Protocol<TCP_Session>(this->socket(), *this));
 }
@@ -26,13 +27,14 @@ boost::asio::ip::tcp::socket& TCP_Session::socket()
 }
 
 void TCP_Session::start(){
-    this->io_service.dispatch(boost::bind(&TCP_Session::syncNodeList, this));
+	this->enqueueSyncNodeList();
+
 }
 
-void TCP_Session::onReadError(const boost::system::error_code& error){
+void TCP_Session::onReadError(const boost::system::error_code& /*error*/){
     this->close();
 }
-void TCP_Session::onSendError(GScale::Packet &p, const boost::system::error_code& error){
+void TCP_Session::onSendError(GScale::Packet &/*p*/, const boost::system::error_code& /*error*/){
     this->close();
 }
 
@@ -50,37 +52,58 @@ void TCP_Session::onRead(Packet &p){
             break;
     }
 }
-void TCP_Session::sendFinished(Packet &p){
-    this->io_service.dispatch(boost::bind(&TCP_Session::syncNodeList, this));
+void TCP_Session::sendFinished(Packet &/*p*/){
+	//this->enqueueSyncNodeList();
 }
 
 void TCP_Session::close(){
-    this->socket_.close();
+	if(!this->socket_.is_open()){
+		return;
+	}
+
+	boost::system::error_code error;
+	this->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
+    this->socket_.close(error);
+
     if(this->onclose){
         this->io_service.dispatch(this->onclose);
-    }
+        // clear out boost function
+        this->onclose = 0;
+	}
 }
 
-
+void TCP_Session::enqueueSyncNodeList(){
+	if(!this->is_syncnode_enqueued){
+		this->io_service.dispatch(boost::bind(&TCP_Session::syncNodeList, this));
+		this->is_syncnode_enqueued = true;
+	}
+}
 
 void TCP_Session::syncNodeList(){
-    std::pair<GScale::Group::LocalNodesSetIdx_creationtime::iterator, GScale::Group::LocalNodesSetIdx_creationtime::iterator> range;
+	this->is_syncnode_enqueued = false;
+
+    std::pair<GScale::GroupCore::LocalNodeSetIdx_time_connect::iterator, GScale::GroupCore::LocalNodeSetIdx_time_connect::iterator> range;
     if(this->nodesyncctime.is_not_a_date_time()){
         range = this->backend->gdao->rangeByCreated();
     }
     else{
         range = this->backend->gdao->rangeByCreated(this->nodesyncctime);
-        if(range.first!=range.second && range.first->created()==this->nodesyncctime){
+        // if the first range entry, is our last synced node time
+        // increase the range, so the next node will get synced
+        if(range.first!=range.second && range.first->time_connect==this->nodesyncctime){
             range.first++;
         }
     }
 
-    if(range.first==range.second){ return; }
+    if(range.first==range.second){
+    	// there is nothing to sync
+    	return;
+    }
 
-    this->syncpacket = GScale::Packet(*range.first, INode::getNilNode());
+    this->syncpacket = GScale::Packet(range.first->node, INode::getNilNode());
     this->syncpacket.type(Packet::NODEAVAIL);
     this->proto->send<Packet>(this->syncpacket);
-    this->nodesyncctime = range.first->created();
+    this->nodesyncctime = range.first->time_connect;
 
     /*
 

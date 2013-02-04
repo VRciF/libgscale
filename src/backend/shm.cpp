@@ -24,7 +24,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 
-#include "group.hpp"
+#include "groupcore.hpp"
 
 namespace GScale{
 
@@ -32,10 +32,10 @@ namespace Backend{
 
 SharedMemory::SharedMemory(){
     this->shm = NULL;
-    this->group = NULL;
+    this->groupc = NULL;
 }
-void SharedMemory::initialize(GScale::Group *group, GScale::GroupNodesDAO *gdao){
-    this->group = group;
+void SharedMemory::initialize(GScale::GroupCore *groupc, GScale::GroupNodesDAO *gdao){
+    this->groupc = groupc;
     this->gdao = gdao;
 
     //unsigned int memsize = 3 * 1024 * 1024;
@@ -43,7 +43,7 @@ void SharedMemory::initialize(GScale::Group *group, GScale::GroupNodesDAO *gdao)
     //bool created = false;
     std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 
-    this->ipckey = this->group->getName();
+    this->ipckey = this->groupc->getName();
 
     {
         try{
@@ -165,7 +165,7 @@ SharedMemory::~SharedMemory(){
     }
 }
 
-void SharedMemory::OnLocalNodeAvailable(GScale::LocalNode node){
+void SharedMemory::OnLocalNodeAvailable(GScale::LocalNode /*node*/){
     /*
     SharedMemory_EventHeader evavail;
 
@@ -194,7 +194,7 @@ void SharedMemory::OnLocalNodeAvailable(GScale::LocalNode node){
      */
 }
 /* called when a local node becomes unavailable */
-void SharedMemory::OnLocalNodeUnavailable(GScale::LocalNode node){
+void SharedMemory::OnLocalNodeUnavailable(GScale::LocalNode /*node*/){
     /*
     SharedMemory_EventHeader evavail;
 
@@ -224,7 +224,7 @@ void SharedMemory::OnLocalNodeUnavailable(GScale::LocalNode node){
 }
 
 /* called when a local node writes data to the group */
-unsigned int SharedMemory::OnLocalNodeWritesToGroup(const GScale::Packet &packet){
+unsigned int SharedMemory::OnLocalNodeWritesToGroup(const GScale::Packet &/*packet*/){
     return 0;
     /*
     SharedMemory_EventHeader evavail;

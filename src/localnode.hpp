@@ -21,11 +21,13 @@ class INodeCallback;
 
 class LocalNode : public GScale::INode{
 	public:
-	    LocalNode(GScale::INodeCallback &cbs, boost::posix_time::ptime ctime = boost::posix_time::microsec_clock::universal_time());
-	    LocalNode(std::string alias, GScale::INodeCallback &cbs, boost::posix_time::ptime ctime = boost::posix_time::microsec_clock::universal_time());
+	    LocalNode(GScale::INodeCallback &cbs);
+	    LocalNode(std::string alias, GScale::INodeCallback &cbs);
+	    LocalNode(const LocalNode &lnode);
 	    ~LocalNode();
 
 	    GScale::INodeCallback& getCallback() const;
+	    void operator=(const LocalNode &source );
 	private:
 	    GScale::INodeCallback &cbs;
 };

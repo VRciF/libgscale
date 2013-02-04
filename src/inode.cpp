@@ -7,30 +7,43 @@
 
 #include <arpa/inet.h>
 
+#include <sstream>
+
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-#include <boost/uuid/string_generator.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/name_generator.hpp>
 
 #include "core.hpp"
 
 namespace GScale{
 
-INode::INode() : hostuuid(Core::getInstance()->getHostUUID()), nodeuuid(boost::uuids::random_generator()()){
-    this->ctime = boost::posix_time::microsec_clock::universal_time();
-}
-INode::INode(std::string alias) : hostuuid(Core::getInstance()->getHostUUID()), nodeuuid(boost::uuids::random_generator()()), alias(alias){
-    this->ctime = boost::posix_time::microsec_clock::universal_time();
-}
-INode::INode(boost::uuids::uuid uuid) : hostuuid(Core::getInstance()->getHostUUID()), nodeuuid(uuid){
-    this->ctime = boost::posix_time::microsec_clock::universal_time();
-}
-INode::INode(boost::uuids::uuid uuid, std::string alias) : hostuuid(Core::getInstance()->getHostUUID()), nodeuuid(uuid), alias(alias){
-    this->ctime = boost::posix_time::microsec_clock::universal_time();
-}
+INode::INode(std::string alias){
+	this->hostuuid = Core::getInstance()->getHostUUID();
+	this->alias = alias;
 
-INode::INode(boost::uuids::uuid hostuuid, boost::uuids::uuid uuid) : hostuuid(hostuuid), nodeuuid(uuid){
-    this->ctime = boost::posix_time::microsec_clock::universal_time();
+	if(alias.length()>0){
+	    std::stringstream ss;
+	    ss << Core::getInstance()->getHostUUID() << "::" << alias;
+
+	    // this means, that if only an alias is given
+	    // the generated uuid shall always be the same
+	    this->nodeuuid = boost::uuids::name_generator(Core::getInstance()->getHostUUID())(alias);
+	}
+	else{
+		this->nodeuuid = boost::uuids::random_generator()();
+	}
+}
+INode::INode(boost::uuids::uuid uuid) : hostuuid(Core::getInstance()->getHostUUID()), nodeuuid(uuid){}
+INode::INode(boost::uuids::uuid uuid, std::string alias) : hostuuid(Core::getInstance()->getHostUUID()), nodeuuid(uuid), alias(alias){}
+
+INode::INode(boost::uuids::uuid hostuuid, boost::uuids::uuid uuid) : hostuuid(hostuuid), nodeuuid(uuid){}
+
+INode::INode(const INode &node){
+	this->hostuuid = node.hostuuid;
+	this->nodeuuid = node.nodeuuid;
+	this->alias = node.alias;
 }
 
 INode::~INode(){}
@@ -56,16 +69,6 @@ std::string INode::getAlias() const{
 		return boost::lexical_cast<std::string>(this->nodeuuid);
 	}
 	return this->alias;
-}
-
-boost::posix_time::ptime INode::created() const{
-    return this->ctime;
-}
-boost::posix_time::ptime INode::created(boost::posix_time::ptime ctime){
-    if(!ctime.is_not_a_date_time()){
-        this->ctime = ctime;
-    }
-    return this->ctime;
 }
 
 inline bool INode::operator== (const INode &b) const

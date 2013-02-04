@@ -31,7 +31,7 @@ class SharedMemory : public GScale::Backend::IBackend{
         SharedMemory();
         ~SharedMemory();
 
-        void initialize(GScale::Group *group, GScale::GroupNodesDAO *gdao);
+        void initialize(GScale::GroupCore *groupc, GScale::GroupNodesDAO *gdao);
 
         /* called when a node becomes available */
         void OnLocalNodeAvailable(GScale::LocalNode node);
@@ -50,7 +50,7 @@ class SharedMemory : public GScale::Backend::IBackend{
         boost::interprocess::managed_shared_memory *shm;
         ShmCircBuff *shm_circular_buffer;
 
-        GScale::Group *group;
+        GScale::GroupCore *groupc;
         GScale::GroupNodesDAO *gdao;
         std::string ipckey;
 };

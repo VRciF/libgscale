@@ -5,7 +5,7 @@
 
 #include "loopback.hpp"
 
-#include "group.hpp"
+#include "groupcore.hpp"
 #include "inodecallback.hpp"
 #include "localnode.hpp"
 #include "packet.hpp"
@@ -15,39 +15,39 @@ namespace GScale{
 namespace Backend{
 
 Loopback::Loopback(){
-	this->group = NULL;
+	this->groupc = NULL;
 	this->gdao = NULL;
 }
 Loopback::~Loopback(){}
 
-void Loopback::initialize(GScale::Group *group, GScale::GroupNodesDAO *gdao){
-    this->group = group;
+void Loopback::initialize(GScale::GroupCore *groupc, GScale::GroupNodesDAO *gdao){
+    this->groupc = groupc;
     this->gdao = gdao;
 }
 
 void Loopback::OnLocalNodeAvailable(GScale::LocalNode node)
 {
-    GScale::Group::LocalNodesSetIdx_uuid::iterator it = this->gdao->begin<GScale::Group::idxname_nodeuuid>();
-    while(it != this->gdao->end<GScale::Group::idxname_nodeuuid>()){
-        if(it->getNodeUUID() == node.getNodeUUID()){ continue; }
-        it->getCallback().OnNodeAvailable(this->group, &node, &(*it));
+    GScale::GroupCore::LocalNodeSetIdx_uuid::iterator it = this->gdao->begin<GScale::GroupCore::idxnode_nodeuuid>();
+    while(it != this->gdao->end<GScale::GroupCore::idxnode_nodeuuid>()){
+        if(it->node.getNodeUUID() == node.getNodeUUID()){ continue; }
+        it->node.getCallback().OnNodeAvailable(this->groupc->getGroupAPI(), &node, &it->node);
     }
 }
 
 void Loopback::OnLocalNodeUnavailable(GScale::LocalNode node)
 {
-    GScale::Group::LocalNodesSetIdx_uuid::iterator it = this->gdao->begin<GScale::Group::idxname_nodeuuid>();
-    while(it != this->gdao->end<GScale::Group::idxname_nodeuuid>()){
-        if(it->getNodeUUID() == node.getNodeUUID()){ continue; }
-        it->getCallback().OnNodeUnavailable(this->group, &node, &(*it));
+    GScale::GroupCore::LocalNodeSetIdx_uuid::iterator it = this->gdao->begin<GScale::GroupCore::idxnode_nodeuuid>();
+    while(it != this->gdao->end<GScale::GroupCore::idxnode_nodeuuid>()){
+        if(it->node.getNodeUUID() == node.getNodeUUID()){ continue; }
+        it->node.getCallback().OnNodeUnavailable(this->groupc->getGroupAPI(), &node, &it->node);
     }
 }
 
 unsigned int Loopback::OnLocalNodeWritesToGroup(const GScale::Packet &packet)
 {
-    GScale::Group::LocalNodesSetIdx_uuid::iterator it = this->gdao->findByUUID(packet.getReceiver().getNodeUUID());
-    if(it != this->gdao->end<GScale::Group::idxname_nodeuuid>()){
-        it->getCallback().OnRead(this->group, packet);
+    GScale::GroupCore::LocalNodeSetIdx_uuid::iterator it = this->gdao->findByUUID(packet.getReceiver().getNodeUUID());
+    if(it != this->gdao->end<GScale::GroupCore::idxnode_nodeuuid>()){
+        it->node.getCallback().OnRead(this->groupc->getGroupAPI(), packet);
     }
 
 	return packet.size();

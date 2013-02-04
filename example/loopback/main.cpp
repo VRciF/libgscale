@@ -94,7 +94,7 @@ class LoopbackCallbacks : public GScale::INodeCallback{
 	    std::multimap<std::string, std::string> node2message;
 };
 
-int main(int argc, char** argv){
+int main(int /*argc*/, char** /*argv*/){
 	GScale::Group *g = new GScale::Group("chat-example");
 	g->attachBackend<GScale::Backend::Loopback>();
 

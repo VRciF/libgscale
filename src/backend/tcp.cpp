@@ -21,19 +21,26 @@ namespace GScale{
 namespace Backend{
 
 TCP::TCP() {
-    this->group = NULL;
+    this->groupc = NULL;
     this->multicast_port = 8000;
     this->listen_port = 8000;
     this->initialized = false;
 }
-void TCP::initialize(GScale::Group *group, GScale::GroupNodesDAO *gdao){
-    this->group = group;
+void TCP::initialize(GScale::GroupCore *groupc, GScale::GroupNodesDAO *gdao){
+    this->groupc = groupc;
     this->gdao = gdao;
 }
 TCP::~TCP(){}
 
-void TCP::OnLocalNodeAvailable(GScale::LocalNode node)
+void TCP::OnLocalNodeAvailable(GScale::LocalNode /*node*/)
 {
+	// a new node is available, so we need to sync pending nodes for every open session
+	TCP_Session_Set::nth_index<1>::type& idx=this->sessions.get<1>();
+	TCP_Session_Set::nth_index<1>::type::iterator it = idx.begin();
+	for(;it!=idx.end();it++){
+		(*it)->enqueueSyncNodeList();
+	}
+
     /*
     GScale::Group::LocalNodesSetIdx_uuid::iterator it = this->gdao->begin();
     while(it != this->gdao->end()){
@@ -43,7 +50,7 @@ void TCP::OnLocalNodeAvailable(GScale::LocalNode node)
     */
 }
 
-void TCP::OnLocalNodeUnavailable(GScale::LocalNode node)
+void TCP::OnLocalNodeUnavailable(GScale::LocalNode /*node*/)
 {
     /*
     GScale::Group::LocalNodesSetIdx_uuid::iterator it = this->gdao->begin();
@@ -54,7 +61,7 @@ void TCP::OnLocalNodeUnavailable(GScale::LocalNode node)
     */
 }
 
-unsigned int TCP::OnLocalNodeWritesToGroup(const GScale::Packet &packet)
+unsigned int TCP::OnLocalNodeWritesToGroup(const GScale::Packet &/*packet*/)
 {
     return 0;
     /*
@@ -67,7 +74,7 @@ unsigned int TCP::OnLocalNodeWritesToGroup(const GScale::Packet &packet)
     */
 }
 
-void TCP::noop(const boost::system::error_code& error){}
+void TCP::noop(const boost::system::error_code& /*error*/){}
 
 void TCP::uuid_write_finished(const boost::system::error_code& error, std::size_t bytes_transferred, TCP_Session_ptr session){
     if(!error && bytes_transferred == session->remotehostuuid.size()){
