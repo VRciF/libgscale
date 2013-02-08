@@ -29,7 +29,7 @@
 #include <boost/multi_index/identity.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
-
+#include <boost/shared_ptr.hpp>
 
 #include "localnode.hpp"
 #include "exception.hpp"
@@ -77,7 +77,7 @@ class Group{
 
 	    void disconnect(const GScale::LocalNode node);
 
-	    void write(const GScale::Packet &payload);
+	    void write(const boost::shared_ptr<GScale::Packet> packet);
 
 	    int getEventDescriptor();
 
@@ -87,7 +87,7 @@ class Group{
 	    void attachBackend(std::string type, GScale::Backend::IBackend *backend);
 	    void detachBackend(std::string type);
 
-	    GScale::GroupCore *gcore;
+	    boost::shared_ptr<GScale::GroupCore> gcore;
 };
 
 }

@@ -16,12 +16,6 @@
 #include "backend/ibackend.hpp"
 #include "packet.hpp"
 
-/*
-#include "inodecallback.hpp"
-#include "localnode.hpp"
-
-*/
-
 namespace GScale{
 
 GroupCore::GroupCore(GScale::Group *group, std::string gname) throw(){
@@ -39,7 +33,7 @@ GroupCore::~GroupCore(){
 }
 
 void GroupCore::attachBackend(std::string type, GScale::Backend::IBackend *backend){
-	BackendSetIdx_type &idx = this->backends.get<idxbackend_type>();
+	Index::BackendSet_type &idx = this->backends.get<Index::backend_type>();
 
 	if(idx.find(type) == idx.end()){
 	    try{
@@ -58,8 +52,8 @@ void GroupCore::attachBackend(std::string type, GScale::Backend::IBackend *backe
 	}
 }
 void GroupCore::detachBackend(std::string type){
-	BackendSetIdx_type &idx = this->backends.get<idxbackend_type>();
-	BackendSetIdx_type::iterator it = idx.find(type);
+	Index::BackendSet_type &idx = this->backends.get<Index::backend_type>();
+	Index::BackendSet_type::iterator it = idx.find(type);
 	if(it!=idx.end()){
 		BackendRow row = *it;
 		row.disable();
@@ -69,9 +63,9 @@ void GroupCore::detachBackend(std::string type){
 
 void GroupCore::runWorker(struct timeval *timeout){
     {
-        BackendSetIdx_enabled &beidx = this->backends.get<idxbackend_enabled>();
+    	Index::BackendSet_enabled &beidx = this->backends.get<Index::backend_enabled>();
         // the all nodes with backendref equals one <=> range (0,1]
-        std::pair<BackendSetIdx_enabled::iterator,BackendSetIdx_enabled::iterator> p = beidx.range(false<boost::lambda::_1,boost::lambda::_1<=true);
+        std::pair<Index::BackendSet_enabled::iterator,Index::BackendSet_enabled::iterator> p = beidx.range(false<boost::lambda::_1,boost::lambda::_1<=true);
         for(;p.first!=p.second;p.first++){
     	    this->io_service.dispatch(boost::bind(&GScale::Backend::IBackend::Worker, p.first->backend));
         }
@@ -94,9 +88,9 @@ void GroupCore::runWorker(struct timeval *timeout){
 
     {
         // drop every node with backendrefcount zero
-    	LocalNodeSetIdx_brefcnt &idx = this->localnodes.get<idxnode_brefcnt>();
+    	Index::LocalNodeSet_brefcnt &idx = this->localnodes.get<Index::node_brefcnt>();
         // the all nodes with backendref equals zero <=> range [0,1)
-        std::pair<LocalNodeSetIdx_brefcnt::iterator,LocalNodeSetIdx_brefcnt::iterator> p = idx.range(0<=boost::lambda::_1,boost::lambda::_1<1);
+        std::pair<LocalNodeSet_brefcnt::iterator,LocalNodeSet_brefcnt::iterator> p = idx.range(0<=boost::lambda::_1,boost::lambda::_1<1);
         if(p.first!=p.second && p.first!=idx.end()){
     	    idx.erase(p.first, p.second);
         }
@@ -104,9 +98,9 @@ void GroupCore::runWorker(struct timeval *timeout){
 
     {
         // drop deleted backends
-        BackendSetIdx_enabled &beidx = this->backends.get<idxbackend_enabled>();
+    	Index::BackendSet_enabled &beidx = this->backends.get<Index::backend_enabled>();
         // the all nodes with backendref equals zero <=> range [0,1)
-        std::pair<BackendSetIdx_enabled::iterator,BackendSetIdx_enabled::iterator> p = beidx.range(false<=boost::lambda::_1,boost::lambda::_1<true);
+        std::pair<Index::BackendSet_enabled::iterator,Index::BackendSet_enabled::iterator> p = beidx.range(false<=boost::lambda::_1,boost::lambda::_1<true);
         if(p.first!=p.second && p.first!=beidx.end()){
     	    beidx.erase(p.first, p.second);
         }
@@ -116,13 +110,13 @@ void GroupCore::runWorker(struct timeval *timeout){
 const GScale::LocalNode GroupCore::connect(std::string nodealias, GScale::INodeCallback &cbs){
 	this->connectcount++;
 
-	LocalNodeRow row(this->connectcount, LocalNode(nodealias, cbs), boost::posix_time::microsec_clock::universal_time());
+	LocalNodeRow row(this->connectcount, LocalNode(this->io_service, nodealias, cbs), boost::posix_time::microsec_clock::universal_time());
 
 	this->localnodes.insert(row);
 
-    BackendSetIdx_enabled &beidx = this->backends.get<idxbackend_enabled>();
+	Index::BackendSet_enabled &beidx = this->backends.get<Index::backend_enabled>();
     // the all nodes with backendref equals one <=> range (0,1]
-    std::pair<BackendSetIdx_enabled::iterator,BackendSetIdx_enabled::iterator> p = beidx.range(false<boost::lambda::_1,boost::lambda::_1<=true);
+    std::pair<Index::BackendSet_enabled::iterator,Index::BackendSet_enabled::iterator> p = beidx.range(false<boost::lambda::_1,boost::lambda::_1<=true);
     for(;p.first!=p.second;p.first++){
 	    this->io_service.post(boost::bind(&GScale::Backend::IBackend::OnLocalNodeAvailable, p.first->backend, row.node));
     }
@@ -134,8 +128,8 @@ const GScale::LocalNode GroupCore::connect(GScale::INodeCallback &cbs){
 }
 
 void GroupCore::disconnect(const GScale::LocalNode node){
-	LocalNodeSetIdx_uuid &idx = this->localnodes.get<idxnode_nodeuuid>();
-	LocalNodeSetIdx_uuid::iterator it = idx.find(node.getNodeUUID());
+	Index::LocalNodeSet_uuid &idx = this->localnodes.get<Index::node_nodeuuid>();
+	Index::LocalNodeSet_uuid::iterator it = idx.find(node.getNodeUUID());
     if(it != idx.end()){
     	//idx.erase(it);
 
@@ -145,20 +139,31 @@ void GroupCore::disconnect(const GScale::LocalNode node){
     	idx.replace(it, row);
     }
 
-    BackendSetIdx_enabled &beidx = this->backends.get<idxbackend_enabled>();
+    Index::BackendSet_enabled &beidx = this->backends.get<Index::backend_enabled>();
     // the all nodes with backendref equals one <=> range (0,1]
-    std::pair<BackendSetIdx_enabled::iterator,BackendSetIdx_enabled::iterator> p = beidx.range(false<boost::lambda::_1,boost::lambda::_1<=true);
+    std::pair<Index::BackendSet_enabled::iterator,Index::BackendSet_enabled::iterator> p = beidx.range(false<boost::lambda::_1,boost::lambda::_1<=true);
     for(;p.first!=p.second;p.first++){
 	    this->io_service.post(boost::bind(&GScale::Backend::IBackend::OnLocalNodeUnavailable, p.first->backend, node));
     }
 }
 
-void GroupCore::write(const GScale::Packet &packet/*, Future result */){
-    BackendSetIdx_enabled &beidx = this->backends.get<idxbackend_enabled>();
-    // the all nodes with backendref equals one <=> range (0,1]
-    std::pair<BackendSetIdx_enabled::iterator,BackendSetIdx_enabled::iterator> p = beidx.range(false<boost::lambda::_1,boost::lambda::_1<=true);
+void GroupCore::write(const PacketPtr packet){
+	Index::BackendSet_enabled &beidx = this->backends.get<Index::backend_enabled>();
+	Index::PacketSet_packet &pidx = this->sendqueue.get<Index::packet>();
+
+	PacketRow pr(packet);
+    std::pair<Index::BackendSet_enabled::iterator,Index::BackendSet_enabled::iterator> p = beidx.range(false<boost::lambda::_1,boost::lambda::_1<=true);
     for(;p.first!=p.second;p.first++){
-	    this->io_service.post(boost::bind(&GScale::Backend::IBackend::OnLocalNodeWritesToGroup, p.first->backend, packet));
+    	pr.backendref.insert(p.first->type);
+    }
+	pidx.push_back(pr);
+
+	Index::PacketSet_packet::iterator last = (pidx.end()--);
+
+    // the all nodes with backendref equals one <=> range (0,1]
+    std::pair<Index::BackendSet_enabled::iterator,Index::BackendSet_enabled::iterator> p = beidx.range(false<boost::lambda::_1,boost::lambda::_1<=true);
+    for(;p.first!=p.second;p.first++){
+	    this->io_service.post(boost::bind(&GScale::Backend::IBackend::OnLocalNodeWritesToGroup, p.first->backend, last->packet));
     }
 }
 
@@ -167,7 +172,6 @@ int GroupCore::getEventDescriptor(){ return 0; }
 std::string GroupCore::getName(){
 	return this->gname;
 }
-
 GScale::Group* GroupCore::getGroupAPI(){
 	return this->group;
 }
@@ -179,7 +183,7 @@ GroupNodesDAO::GroupNodesDAO(GScale::GroupCore *groupc){
 }
 GroupNodesDAO::~GroupNodesDAO(){}
 
-std::pair<GScale::GroupCore::LocalNodeSetIdx_time_connect::iterator, GScale::GroupCore::LocalNodeSetIdx_time_connect::iterator>
+std::pair<GScale::Index::LocalNodeSet_time_connect::iterator, GScale::Index::LocalNodeSet_time_connect::iterator>
 GroupNodesDAO::rangeByCreated(boost::posix_time::ptime min, boost::posix_time::ptime max){
     if(!min.is_not_a_date_time() && !max.is_not_a_date_time() && min>max){
         boost::posix_time::ptime swap;
@@ -189,26 +193,26 @@ GroupNodesDAO::rangeByCreated(boost::posix_time::ptime min, boost::posix_time::p
         max = swap;
     }
 
-    std::pair<GScale::GroupCore::LocalNodeSetIdx_time_connect::iterator, GScale::GroupCore::LocalNodeSetIdx_time_connect::iterator> result;
+    std::pair<GScale::Index::LocalNodeSet_time_connect::iterator, GScale::Index::LocalNodeSet_time_connect::iterator> result;
     if(min.is_not_a_date_time() && max.is_not_a_date_time()){
-        result = this->groupc->localnodes.get<GScale::GroupCore::idxnode_time_connect>().range(boost::multi_index::unbounded, boost::multi_index::unbounded);
+        result = this->groupc->localnodes.get<GScale::Index::idxnode_time_connect>().range(boost::multi_index::unbounded, boost::multi_index::unbounded);
     }
     else if(min.is_not_a_date_time()){
-        result = this->groupc->localnodes.get<GScale::GroupCore::idxnode_time_connect>().range(boost::multi_index::unbounded, boost::lambda::_1<=max);
+        result = this->groupc->localnodes.get<GScale::Index::idxnode_time_connect>().range(boost::multi_index::unbounded, boost::lambda::_1<=max);
     }
     else if(max.is_not_a_date_time()){
-        result = this->groupc->localnodes.get<GScale::GroupCore::idxnode_time_connect>().range(min<boost::lambda::_1, boost::multi_index::unbounded);
+        result = this->groupc->localnodes.get<GScale::Index::idxnode_time_connect>().range(min<boost::lambda::_1, boost::multi_index::unbounded);
     }
     else{
-        result = this->groupc->localnodes.get<GScale::GroupCore::idxnode_time_connect>().range(min<=boost::lambda::_1, boost::lambda::_1<=max);
+        result = this->groupc->localnodes.get<GScale::Index::idxnode_time_connect>().range(min<=boost::lambda::_1, boost::lambda::_1<=max);
     }
 
     return result;
 }
 
-GScale::GroupCore::LocalNodeSetIdx_uuid::iterator GroupNodesDAO::findByUUID(boost::uuids::uuid search){
-    GScale::GroupCore::LocalNodeSetIdx_uuid::iterator result = this->groupc->localnodes.get<GScale::GroupCore::idxnode_nodeuuid>().find(search);
-    if(result == this->groupc->localnodes.get<GScale::GroupCore::idxnode_nodeuuid>().end()){
+GScale::Index::LocalNodeSet_uuid::iterator GroupNodesDAO::findByUUID(boost::uuids::uuid search){
+    GScale::Index::LocalNodeSet_uuid::iterator result = this->groupc->localnodes.get<GScale::Index::node_nodeuuid>().find(search);
+    if(result == this->groupc->localnodes.get<GScale::Index::node_nodeuuid>().end()){
         throw GScale::Exception(std::string("node uuid not found:")+boost::lexical_cast<std::string>(search), ENOENT);
     }
     return result;

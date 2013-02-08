@@ -28,7 +28,7 @@ class IBackend{
 		virtual void OnLocalNodeUnavailable(GScale::LocalNode node) = 0;
 
 		/* called when a local node writes data to the group */
-		virtual unsigned int OnLocalNodeWritesToGroup(const GScale::Packet &packet)=0;
+		virtual unsigned int OnLocalNodeWritesToGroup(const boost::shared_ptr<GScale::Packet> packet)=0;
 
 		virtual void Worker() = 0;
 };

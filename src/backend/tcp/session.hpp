@@ -63,7 +63,12 @@ class TCP_Session
         TCP *backend;
 
         enum STATES { MIN=0, SYNC, AVAIL, MAX} state;
-        boost::posix_time::ptime nodesyncctime;
+
+        struct NodeConnectSync{
+            boost::posix_time::ptime node_connect;
+            uint64_t nodeid;
+        } ncs;
+
         GScale::Packet syncpacket;
 
         boost::shared_ptr<TCP_Protocol<TCP_Session>  > proto;

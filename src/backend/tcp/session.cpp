@@ -82,28 +82,38 @@ void TCP_Session::enqueueSyncNodeList(){
 void TCP_Session::syncNodeList(){
 	this->is_syncnode_enqueued = false;
 
-    std::pair<GScale::GroupCore::LocalNodeSetIdx_time_connect::iterator, GScale::GroupCore::LocalNodeSetIdx_time_connect::iterator> range;
-    if(this->nodesyncctime.is_not_a_date_time()){
-        range = this->backend->gdao->rangeByCreated();
-    }
-    else{
-        range = this->backend->gdao->rangeByCreated(this->nodesyncctime);
-        // if the first range entry, is our last synced node time
-        // increase the range, so the next node will get synced
-        if(range.first!=range.second && range.first->time_connect==this->nodesyncctime){
-            range.first++;
+	bool cont = false;
+	do{
+        std::pair<GScale::GroupCore::LocalNodeSetIdx_time_connect::iterator, GScale::GroupCore::LocalNodeSetIdx_time_connect::iterator> range;
+        if(this->nodesyncctime.is_not_a_date_time()){
+            range = this->backend->gdao->rangeByCreated();
         }
-    }
+        else{
+            range = this->backend->gdao->rangeByCreated(this->nodesyncctime);
+            // if the first range entry, is our last synced node time
+            // increase the range, so the next node will get synced
+            if(range.first!=range.second && range.first->time_connect==this->nodesyncctime){
+                range.first++;
+            }
+        }
 
-    if(range.first==range.second){
-    	// there is nothing to sync
-    	return;
-    }
+        if(range.first==range.second){
+    	    // there is nothing to sync
+    	    return;
+        }
 
-    this->syncpacket = GScale::Packet(range.first->node, INode::getNilNode());
-    this->syncpacket.type(Packet::NODEAVAIL);
-    this->proto->send<Packet>(this->syncpacket);
-    this->nodesyncctime = range.first->time_connect;
+        cont = true;
+        // if node has no disconnect time
+        if(range.first->node.time_disconnect.is_not_a_date_time()){
+    	    cont = false;
+            // sync it
+            this->syncpacket = GScale::Packet(range.first->node, INode::getNilNode());
+            this->syncpacket.type(Packet::NODEAVAIL);
+            this->proto->send<Packet>(this->syncpacket);
+        }
+
+        this->nodesyncctime = range.first->time_connect;
+	}while(cont);
 
     /*
 

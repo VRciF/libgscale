@@ -61,9 +61,8 @@ void TCP::OnLocalNodeUnavailable(GScale::LocalNode /*node*/)
     */
 }
 
-unsigned int TCP::OnLocalNodeWritesToGroup(const GScale::Packet &/*packet*/)
+void TCP::OnLocalNodeWritesToGroup(const PacketPtr /*packet*/)
 {
-    return 0;
     /*
     GScale::Group::LocalNodesSetIdx_uuid::iterator it = this->gdao->findByUUID(packet.getReceiver()->getNodeUUID());
     if(it != this->gdao->end()){

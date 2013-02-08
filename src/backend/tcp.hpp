@@ -47,7 +47,7 @@ class TCP : public GScale::Backend::IBackend{
         void OnLocalNodeUnavailable(GScale::LocalNode node);
 
         /* called when a local node writes data to the group */
-        unsigned int OnLocalNodeWritesToGroup(const GScale::Packet &packet);
+        unsigned int OnLocalNodeWritesToGroup(const PacketPtr packet);
         void Worker();
     protected:
         void noop(const boost::system::error_code& error);

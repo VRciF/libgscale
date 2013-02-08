@@ -44,7 +44,7 @@ void Group::disconnect(const GScale::LocalNode node){
 	this->gcore->disconnect(node);
 }
 
-void Group::write(const GScale::Packet &packet/*, Future result */){
+void Group::write(const boost::shared_ptr<GScale::Packet> packet){
 	this->gcore->write(packet);
 }
 

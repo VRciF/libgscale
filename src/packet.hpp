@@ -62,6 +62,8 @@ class Packet{
 	    METATYPE type_;
 };
 
+typedef boost::shared_ptr<Packet> PacketPtr;
+
 }
 
 BOOST_CLASS_VERSION(GScale::Packet, 1)

@@ -30,7 +30,7 @@ void Loopback::OnLocalNodeAvailable(GScale::LocalNode node)
     GScale::GroupCore::LocalNodeSetIdx_uuid::iterator it = this->gdao->begin<GScale::GroupCore::idxnode_nodeuuid>();
     while(it != this->gdao->end<GScale::GroupCore::idxnode_nodeuuid>()){
         if(it->node.getNodeUUID() == node.getNodeUUID()){ continue; }
-        it->node.getCallback().OnNodeAvailable(this->groupc->getGroupAPI(), &node, &it->node);
+        it->node.OnNodeAvailable(this->groupc->getGroupAPI(), &node, &it->node);
     }
 }
 
@@ -39,18 +39,16 @@ void Loopback::OnLocalNodeUnavailable(GScale::LocalNode node)
     GScale::GroupCore::LocalNodeSetIdx_uuid::iterator it = this->gdao->begin<GScale::GroupCore::idxnode_nodeuuid>();
     while(it != this->gdao->end<GScale::GroupCore::idxnode_nodeuuid>()){
         if(it->node.getNodeUUID() == node.getNodeUUID()){ continue; }
-        it->node.getCallback().OnNodeUnavailable(this->groupc->getGroupAPI(), &node, &it->node);
+        it->node.OnNodeUnavailable(this->groupc->getGroupAPI(), &node, &it->node);
     }
 }
 
-unsigned int Loopback::OnLocalNodeWritesToGroup(const GScale::Packet &packet)
+void Loopback::OnLocalNodeWritesToGroup(const PacketPtr packet)
 {
     GScale::GroupCore::LocalNodeSetIdx_uuid::iterator it = this->gdao->findByUUID(packet.getReceiver().getNodeUUID());
     if(it != this->gdao->end<GScale::GroupCore::idxnode_nodeuuid>()){
-        it->node.getCallback().OnRead(this->groupc->getGroupAPI(), packet);
+        it->node.OnRead(this->groupc->getGroupAPI(), *packet);
     }
-
-	return packet.size();
 }
 
 void Loopback::Worker(){}

@@ -39,7 +39,7 @@ class SharedMemory : public GScale::Backend::IBackend{
         void OnLocalNodeUnavailable(GScale::LocalNode node);
 
         /* called when a local node writes data to the group */
-        unsigned int OnLocalNodeWritesToGroup(const GScale::Packet &packet);
+        unsigned int OnLocalNodeWritesToGroup(const boost::shared_ptr<GScale::Packet> packet);
         void Worker();
     protected:
 
